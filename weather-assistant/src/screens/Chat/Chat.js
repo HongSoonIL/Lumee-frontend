@@ -22,28 +22,6 @@ const Chat = ({
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  // 영상 출력 참조 생성
-  const videoWindowRef = useRef(null);
-
-  // 🎬 날씨 영상 재생 함수 추가
-  const playWeatherVideo = (videoUrl) => {
-    const win = videoWindowRef.current;
-    
-    if (!win || win.closed) {
-      const screenWidth = window.screen.width;
-      const windowFeatures = `width=800,height=600,left=${screenWidth},top=0,menubar=no,toolbar=no,location=no,status=no`;
-      
-      videoWindowRef.current = window.open(
-        videoUrl, 
-        'hologramDisplay',  // ⭐ 이름을 hologramDisplay로 변경!
-        windowFeatures
-      );
-    } else {
-      videoWindowRef.current.location.href = videoUrl;
-      videoWindowRef.current.focus();
-    }
-  };
-
   useEffect(() => {
     // 첫 번째 사용자 메시지가 있고 아직 제목을 생성하지 않았을 때
     if (messages.length >= 1 && messages[0]?.type === 'user' && !titleGeneratedRef.current) {
@@ -110,27 +88,6 @@ const Chat = ({
       }, 100);
     }
   }, [messages]);
-
-  // 🎬 영상 URL이 포함된 메시지가 있으면 재생
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    
-    // 마지막 메시지에 videoUrl이 있으면 재생
-    if (lastMessage?.videoUrl) {
-      console.log('🎬 Found videoUrl in message:', lastMessage.videoUrl);
-      playWeatherVideo(lastMessage.videoUrl);
-    }
-  }, [messages]); // messages가 변경될 때마다 실행
-
-  // 컴포넌트 언마운트 시 영상 창 닫기
-  useEffect(() => {
-    return () => {
-      if (videoWindowRef.current && !videoWindowRef.current.closed) {
-        // videoWindowRef.current.close();
-        console.log('🎬 Closed weather video window on unmount');
-      }
-    };
-  }, []);
 
   // 뒤로가기 핸들러
   const handleBack = () => {
