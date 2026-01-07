@@ -40,21 +40,8 @@ const KnockDetector = ({ onKnock }) => {
         };
     }, [onKnock]);
 
-    // UI는 간단하게 상태만 표시
-    return (
-        <div style={{
-            position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000,
-            backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '10px',
-            borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-        }}>
-            <p style={{ margin: 0, fontWeight: 'bold' }}>
-                라즈베리파이 연결 상태: 
-                <span style={{ color: status === 'Connected' ? 'green' : 'red' }}>
-                    {status}
-                </span>
-            </p>
-        </div>
-    );
+    // UI 없이 백그라운드에서만 작동
+    return null;
 };
 
 export default KnockDetector;

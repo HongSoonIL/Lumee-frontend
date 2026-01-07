@@ -6,10 +6,10 @@ import VoiceInput from './screens/VoiceInput/VoiceInput';
 import KnockDetector from './screens/VoiceInput/KnockDetector';
 // 1. 경로를 'screens' (복수형) 및 'camera' (소문자)로 수정합니다.
 import CameraScreen from './screens/camera/CameraScreen';
-import WelcomeScreen from './screens/welcome/WelcomeScreen';
+
 
 function App() {
-  const [view, setView] = useState('welcome');
+  const [view, setView] = useState('home');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [time, setTime] = useState('');
@@ -26,8 +26,6 @@ function App() {
 
   // 현재 화면을 추적하기 위한 state 추가 (App.js 상단에)
   const [previousView, setPreviousView] = useState('home');
-
-  const [currentScreen, setCurrentScreen] = useState('home'); // 'home', 'chat', 'camera'
 
   useEffect(() => {
     const now = new Date();
@@ -230,9 +228,7 @@ function App() {
   return (
     <div className={`app ${view}`}>
       <KnockDetector onKnock={onKnock} />
-      {view === 'welcome' && (
-        <WelcomeScreen setView={setView} setUid={setUid} />
-      )}
+
       {view === 'home' && (
         <Home
           time={time}
