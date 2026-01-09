@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './Camera_Before.css';
 import './Camera_Cautions.css';
 import './Camera.css';
@@ -7,16 +7,17 @@ import './Camera_Done.css';
 const CameraScreen = ({ onBack, uid }) => {
   // 환경 변수에서 URL 가져오기
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
-  const RASPI_URL = process.env.REACT_APP_RASPI_URL || 'http://192.168.50.135:5000';
-  
+
   // 상태 관리
   const [step, setStep] = useState('cautions'); // cautions -> before -> scanning -> done
   const [capturedImage, setCapturedImage] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [streamReady, setStreamReady] = useState(false);
 
-  const streamImgRef = useRef(null);
+  // 브라우저 카메라를 위한 video ref
+  const videoRef = useRef(null);
 
   // 사용자 프로필
   const userProfiles = {
@@ -26,51 +27,130 @@ const CameraScreen = ({ onBack, uid }) => {
   const currentUser = userProfiles[uid] || userProfiles['testUser1'];
   const userName = currentUser.name;
 
-  // 촬영 처리 함수
+  // 브라우저 카메라 스트림 초기화 및 정리
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        console.log('📷 브라우저 카메라 시작 중...');
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user', // 전면 카메라
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setStreamReady(true);
+          console.log('✅ 카메라 스트림 연결됨');
+        }
+      } catch (err) {
+        console.error('❌ 카메라 접근 오류:', err);
+        if (err.name === 'NotAllowedError') {
+          setError('카메라 접근 권한이 필요합니다');
+        } else if (err.name === 'NotFoundError') {
+          setError('카메라를 찾을 수 없습니다');
+        } else {
+          setError('카메라 접근에 실패했습니다');
+        }
+        setStreamReady(false);
+      }
+    };
+
+    // 'before' 단계에서만 카메라 시작
+    if (step === 'before') {
+      startCamera();
+    }
+
+    // 클린업: 컴포넌트 언마운트 또는 단계 변경 시 스트림 정지
+    return () => {
+      if (videoRef.current?.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach(track => {
+          track.stop();
+          console.log('🛑 카메라 트랙 정지됨');
+        });
+        videoRef.current.srcObject = null;
+        setStreamReady(false);
+      }
+    };
+  }, [step]);
+
+  // Canvas를 사용하여 video 프레임 캡처
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !streamReady) {
+      throw new Error('카메라가 준비되지 않았습니다');
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d');
+
+    // 거울 모드 적용 (좌우 반전)
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+
+    // Base64 이미지로 변환 (JPEG, 90% 품질)
+    return canvas.toDataURL('image/jpeg', 0.9);
+  };
+
+  // 촬영 처리 함수 (브라우저 카메라 사용)
   const handleCapture = async () => {
     setLoading(true);
     setStep('scanning');
     setError(null);
 
     try {
-      console.log('📸 촬영 요청 시작...');
-      
-      // 백엔드를 통해 촬영 요청
-      const response = await fetch(`${BACKEND_URL}/camera/capture`, {
+      console.log('📸 브라우저에서 사진 촬영 시작...');
+
+      // 브라우저에서 직접 사진 캡처
+      const imageDataUrl = capturePhoto();
+
+      // Base64 헤더 제거
+      const base64Image = imageDataUrl.replace(/^data:image\/jpeg;base64,/, '');
+
+      console.log('📤 백엔드로 이미지 전송 중...');
+
+      // 백엔드에 이미지 분석 요청
+      const response = await fetch(`${BACKEND_URL}/camera/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ uid })
+        body: JSON.stringify({
+          uid,
+          image: base64Image
+        })
       });
 
       if (!response.ok) {
-        throw new Error(`촬영 실패: ${response.status}`);
+        throw new Error(`분석 실패: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ 촬영 응답:', data);
+      console.log('✅ 분석 응답:', data);
 
-      if (data.success && data.image) {
-        // Base64 이미지 저장
-        setCapturedImage(`data:image/jpeg;base64,${data.image}`);
-        setAnalysisResult(data.analysis);
-        
-        // 3초 후 완료 화면으로
-        setTimeout(() => {
-          setStep('done');
-          setLoading(false);
-        }, 3000);
-      } else {
-        throw new Error(data.error || '촬영 실패');
-      }
+      // 캡처한 이미지와 분석 결과 저장
+      setCapturedImage(imageDataUrl);
+      setAnalysisResult(data.analysis);
+
+      // 3초 후 완료 화면으로
+      setTimeout(() => {
+        setStep('done');
+        setLoading(false);
+      }, 3000);
 
     } catch (err) {
       console.error('❌ 촬영 오류:', err);
       setError(err.message);
       setStep('before');
       setLoading(false);
-      
+
       // 3초 후 에러 메시지 자동 제거
       setTimeout(() => setError(null), 3000);
     }
@@ -161,66 +241,71 @@ const CameraScreen = ({ onBack, uid }) => {
 
   // 2. 실시간 카메라 화면
   const renderBefore = () => (
-  <div className="app-container camera-before">
-    <div className="status-bar">
-      <div className="time-text"></div>
-    </div>
-
-    {/* 🔥 실시간 스트림 - 전체 화면으로 표시 */}
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#000',
-      overflow: 'hidden',
-      zIndex: 1
-    }}>
-      <img
-        ref={streamImgRef}
-        src={`${RASPI_URL}/video_feed?t=${Date.now()}`}
-        alt="Camera Stream"
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%) scaleX(-1)', // 중앙 정렬 + 거울 모드
-          minWidth: '100%',
-          minHeight: '100%',
-          width: 'auto',
-          height: 'auto',
-          maxWidth: 'none',
-          objectFit: 'cover'
-        }}
-        onError={(e) => {
-          console.error('스트림 로드 실패');
-          e.target.style.display = 'none';
-          setError('카메라 연결 확인 필요');
-        }}
-        onLoad={() => {
-          console.log('✅ 스트림 연결됨');
-          if (error === '카메라 연결 확인 필요') {
-            setError(null);
-          }
-        }}
-      />
-    </div>
-
-    {/* 오버레이 (가이드 라인 등) */}
-    <div className="overlay-rectangle" style={{ zIndex: 2 }}></div>
-
-    {/* 뒤로가기 버튼 */}
-    <div className="header-frame" style={{ zIndex: 10 }}>
-      <div className="back-arrow" onClick={() => setStep('cautions')}>
-        <img
-          src={`${process.env.PUBLIC_URL}/assets/icons/arrow-left.svg`}
-          alt="Back"
-        />
+    <div className="app-container camera-before">
+      <div className="status-bar">
+        <div className="time-text"></div>
       </div>
-    </div>
 
-    {/* 촬영 가이드 텍스트
+      {/* 🔥 브라우저 카메라 스트림 - 전체 화면으로 표시 */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
+        overflow: 'hidden',
+        zIndex: 1
+      }}>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%) scaleX(-1)', // 중앙 정렬 + 거울 모드
+            minWidth: '100%',
+            minHeight: '100%',
+            width: 'auto',
+            height: 'auto',
+            maxWidth: 'none',
+            objectFit: 'cover'
+          }}
+        />
+        {/* 카메라 로딩 중 표시 */}
+        {!streamReady && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'white',
+            fontSize: '16px',
+            textAlign: 'center',
+            zIndex: 2
+          }}>
+            📷 카메라 로딩 중...
+          </div>
+        )}
+      </div>
+
+      {/* 오버레이 (가이드 라인 등) */}
+      <div className="overlay-rectangle" style={{ zIndex: 2 }}></div>
+
+      {/* 뒤로가기 버튼 */}
+      <div className="header-frame" style={{ zIndex: 10 }}>
+        <div className="back-arrow" onClick={() => setStep('cautions')}>
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/icons/arrow-left.svg`}
+            alt="Back"
+          />
+        </div>
+      </div>
+
+      {/* 촬영 가이드 텍스트
     <div style={{
       position: 'absolute',
       bottom: '150px',
@@ -241,51 +326,42 @@ const CameraScreen = ({ onBack, uid }) => {
     </div>
     */}
 
-    {/* 촬영 버튼 */}
-    <div 
-      className="camera-button" 
-      onClick={handleCapture}
-      style={{ 
-        cursor: loading ? 'not-allowed' : 'pointer',
-        zIndex: 10
-      }}
-    >
-      <img
-        src={`${process.env.PUBLIC_URL}/assets/icons/camerabutton.svg`}
-        alt="Camera Button"
-        className="camera-button-icon"
-        style={{ opacity: loading ? 0.5 : 1 }}
-      />
-    </div>
+      {/* 촬영 버튼 */}
+      <div
+        className="camera-button"
+        onClick={handleCapture}
+        style={{
+          cursor: loading ? 'not-allowed' : 'pointer',
+          zIndex: 10
+        }}
+      >
+        <img
+          src={`${process.env.PUBLIC_URL}/assets/icons/camerabutton.svg`}
+          alt="Camera Button"
+          className="camera-button-icon"
+          style={{ opacity: loading ? 0.5 : 1 }}
+        />
+      </div>
 
-    <ErrorToast />
+      <ErrorToast />
 
-    <div className="home-indicator-wrapper" style={{ zIndex: 10 }}>
-      <div className="home-indicator-bar"></div>
+      <div className="home-indicator-wrapper" style={{ zIndex: 10 }}>
+        <div className="home-indicator-bar"></div>
+      </div>
     </div>
-  </div>
-);
+  );
 
   // 3. 스캔 중 화면
   const renderScanning = () => (
     <div className="app-container camera">
+      {/* 스캔 중 배경 */}
       <div className="background-image" style={{
-        backgroundImage: 'none',
-        backgroundColor: '#000'
+        backgroundImage: capturedImage ? `url(${capturedImage})` : 'none',
+        backgroundColor: '#000',
+        filter: 'blur(10px)'
       }}>
-        <img
-          src={`${RASPI_URL}/video_feed`}
-          alt="Scanning"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            transform: 'scaleX(-1)',
-            filter: 'blur(5px)'
-          }}
-        />
       </div>
-      <div className="overlay-rectangle" style={{ opacity: 0.7 }}></div>
+      <div className="overlay-rectangle" style={{ opacity: 0.8 }}></div>
 
       <div className="status-bar">
         <div className="time"></div>
@@ -349,9 +425,9 @@ const CameraScreen = ({ onBack, uid }) => {
   const renderDone = () => (
     <div className="app-container camera-done">
       {/* 촬영된 이미지를 배경으로 */}
-      <div 
-        className="background-image" 
-        style={{ 
+      <div
+        className="background-image"
+        style={{
           backgroundImage: capturedImage ? `url(${capturedImage})` : 'none',
           filter: 'blur(25px)',
           backgroundColor: '#000'
