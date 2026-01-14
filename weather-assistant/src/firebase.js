@@ -19,16 +19,29 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// const analytics = getAnalytics(app); // 사용하지 않음
 
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Google Calendar API scope 추가
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+
 // 로그인 함수
 export const signInWithGoogle = async () => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
+
+        // Google Access Token 저장 (Calendar API 호출용)
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const accessToken = credential?.accessToken;
+
+        if (accessToken) {
+            localStorage.setItem('googleAccessToken', accessToken);
+            console.log('✅ Google Access Token saved');
+        }
+
         return result.user;
     } catch (error) {
         console.error("Error signing in with Google", error);
