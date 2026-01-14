@@ -53,6 +53,8 @@ function isSameDay(a, b) {
   );
 }
 
+// fetchCalendarEvents는 Home 컴포넌트 내부로 이동됨
+
 const Home = ({
   time,
   location,
@@ -79,16 +81,100 @@ const Home = ({
     greeting: 'Please Sign In 👋'
   };
 
-  // [수정] 프로필 버튼 클릭 핸들러 (로그인/로그아웃 토글)
+  // ===== Google Calendar 일정 State =====
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
+
+  // ✨ 백엔드로부터 Google Calendar 일정 가져오기
+  const fetchCalendarEvents = async () => {
+    const token = localStorage.getItem('googleAccessToken');
+    if (!token) {
+      console.log('❌ Access token not found');
+      return;
+    }
+
+    setIsLoadingCalendar(true);
+    try {
+      const response = await fetch('http://localhost:4000/calendar/events', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accessToken: token }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const events = await response.json();
+      console.log('✅ Google Calendar Events loaded:', events);
+      console.log('📊 Events count:', events.length);
+
+      // 백엔드 응답 형식을 프론트엔드 형식으로 변환
+      const formattedEvents = events.map(event => {
+        console.log('🔍 Processing event:', event);
+
+        // ISO 8601 날짜를 YYYY-MM-DD 형식으로 변환
+        let eventDate = event.date;
+        if (event.start) {
+          // ISO 형식인 경우 (예: 2026-01-16T18:30:00+09:00)
+          eventDate = event.start.split('T')[0];
+        } else if (event.date && event.date.includes('T')) {
+          eventDate = event.date.split('T')[0];
+        }
+
+        const formatted = {
+          ...event,
+          date: eventDate, // YYYY-MM-DD 형식 보장
+          title: event.title || event.summary || 'Untitled Event',
+          tag: event.tag || 'Event',
+          subtitle: event.location ? `📍 ${event.location}` : (event.subtitle || '#Calendar'),
+          timeRange: event.timeRange || 'All day',
+          etaText: event.etaText || '',
+          body: event.body || event.description || '',
+          location: event.location || ''
+        };
+
+        console.log('✨ Formatted event:', formatted);
+        return formatted;
+      });
+
+      console.log('📅 Final formatted events:', formattedEvents);
+      setCalendarEvents(formattedEvents);
+    } catch (error) {
+      console.error('❌ Failed to fetch calendar:', error);
+      setCalendarEvents([]); // 오류 시 빈 배열로 설정
+    } finally {
+      setIsLoadingCalendar(false);
+    }
+  };
+
+  // 프로필 버튼 클릭 핸들러 (로그인/로그아웃 토글)
   const handleProfileClick = async () => {
     if (user) {
       if (window.confirm("Do you want to logout?")) {
         await logout();
+        localStorage.removeItem('googleAccessToken'); // 토큰 삭제
+        setCalendarEvents([]); // 캘린더 일정 초기화
       }
     } else {
-      await signInWithGoogle();
+      const loggedInUser = await signInWithGoogle();
+      if (loggedInUser) {
+        // 로그인 성공 후 약간의 지연 후 캘린더 가져오기
+        setTimeout(() => {
+          fetchCalendarEvents();
+        }, 1000);
+      }
     }
   };
+
+  // ✨ 컴포넌트 마운트 시 캘린더 로드
+  useEffect(() => {
+    if (user && localStorage.getItem('googleAccessToken')) {
+      fetchCalendarEvents();
+    }
+  }, [user]); // user가 변경될 때마다 실행
 
   // ===== 날짜 =====
   const today = new Date();
@@ -321,9 +407,15 @@ const Home = ({
   };
 
   // ===== 날짜별 일정 찾기 =====
+  // Google Calendar와 정적 schedules를 병합
+  const allSchedules = [...calendarEvents, ...schedules];
+
   const selectedSchedule =
     selectedDate &&
-    schedules.find((s) => {
+    allSchedules.find((s) => {
+      // date 필드가 없으면 건너뛰기
+      if (!s.date) return false;
+
       const [y, m, d] = s.date.split('-').map(Number);
       const scheduleDate = new Date(y, m - 1, d);
       return isSameDay(scheduleDate, selectedDate);
@@ -575,14 +667,23 @@ const Home = ({
 
             {/* 👉 일정 카드 / + 카드 영역 */}
             <div className="calendar-plan-wrapper">
-              {selectedDate &&
-                (selectedSchedule ? (
+              {!user ? (
+                <div className="plan-card-empty-text">
+                  Please sign in to see your Google Calendar events.
+                </div>
+              ) : isLoadingCalendar ? (
+                <div className="plan-card-empty-text">
+                  Loading calendar events...
+                </div>
+              ) : selectedDate ? (
+                selectedSchedule ? (
                   <PlanCard schedule={selectedSchedule} />
                 ) : (
                   <div className="plan-card-empty-text">
                     No schedule for this day.
                   </div>
-                ))}
+                )
+              ) : null}
             </div>
           </div>
         </div>

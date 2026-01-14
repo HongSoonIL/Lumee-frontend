@@ -45,7 +45,7 @@ function App() {
         setCoords({ latitude, longitude });
 
         try {
-          const res = await fetch('http://localhost:4000/reverse-geocode', { //https://weather-assistant-backend1.onrender.com 주소 변경 필요
+          const res = await fetch('http://localhost:4000/reverse-geocode', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
@@ -58,7 +58,7 @@ function App() {
         }
 
         try {
-          const res = await fetch('http://localhost:4000/weather', { //https://weather-assistant-backend1.onrender.com 주소 변경 필요
+          const res = await fetch('http://localhost:4000/weather', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
@@ -117,7 +117,7 @@ function App() {
 
     try {
       // ✅ 엔드포인트를 /chat으로 변경하고, uid를 함께 전송합니다.
-      const res = await fetch('http://localhost:4000/chat', { //https://weather-assistant-backend1.onrender.com 주소 변경 필요
+      const res = await fetch('http://localhost:4000/chat', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInput: messageText, location, coords, uid: uid }), //🔥 하드코딩된 값 대신 state 사용

@@ -1,7 +1,4 @@
-// 일정 데이터 (페르소나 정보 제거됨)
-// 필요시 실제 사용자 일정으로 대체 가능
-export const schedules = [
-  // 기본적으로 빈 배열로 시작
-  // 실제 사용자의 일정을 백엔드에서 가져오거나
-  // 사용자가 직접 추가할 수 있도록 확장 가능
-];
+// Google Calendar 일정만 표시합니다.
+// 일정이 없는 경우 "No schedule for this day."가 표시됩니다.
+
+export const schedules = [];

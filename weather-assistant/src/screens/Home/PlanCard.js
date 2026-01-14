@@ -15,7 +15,7 @@ const PlanCard = ({ schedule }) => {
 
   return (
     <div className="plan-card">
-      <img className="plan-card-image" src={image} alt={title} />
+      {image && <img className="plan-card-image" src={image} alt={title} />}
 
       <div className="plan-card-tag-row">
         <span className="plan-card-tag-pill">{tag}</span>
