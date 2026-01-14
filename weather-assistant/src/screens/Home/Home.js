@@ -95,7 +95,7 @@ const Home = ({
 
     setIsLoadingCalendar(true);
     try {
-      const response = await fetch('http://localhost:4000/calendar/events', {
+      const response = await fetch('http://localhost:4000/calendar/events', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
