@@ -46,6 +46,7 @@ function App() {
 
         try {
           const res = await fetch('http://localhost:4000/reverse-geocode', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
           });
