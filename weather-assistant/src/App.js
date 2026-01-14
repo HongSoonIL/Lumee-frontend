@@ -7,6 +7,10 @@ import KnockDetector from './screens/VoiceInput/KnockDetector';
 // 1. 경로를 'screens' (복수형) 및 'camera' (소문자)로 수정합니다.
 import CameraScreen from './screens/camera/CameraScreen';
 
+// 로그인 Firebase 관련 import
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
 
 function App() {
   const [view, setView] = useState('home');
@@ -17,8 +21,8 @@ function App() {
   const [coords, setCoords] = useState(null);
   const [weather, setWeather] = useState(null);
   // const [uid, setUid] = useState('user01');
-  // 1. UID를 state로 관리하도록 변경
-  const [uid, setUid] = useState('testUser1'); // 기본값을 testUser1로 설정
+  const [uid, setUid] = useState(null);
+  const [user, setUser] = useState(null); // 로그인한 사용자 정보
 
   // 진행 중인 요청을 추적하기 위한 ref
   const abortControllerRef = useRef(null);
@@ -26,6 +30,7 @@ function App() {
 
   // 현재 화면을 추적하기 위한 state 추가 (App.js 상단에)
   const [previousView, setPreviousView] = useState('home');
+
 
   useEffect(() => {
     const now = new Date();
@@ -225,6 +230,22 @@ function App() {
     };
   }, []);
 
+  // 인증 상태 감지 리스너
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        console.log("✅ 로그인 됨:", currentUser.uid);
+        setUser(currentUser);
+        setUid(currentUser.uid);
+      } else {
+        console.log("👋 로그아웃 됨");
+        setUser(null);
+        setUid(null); // 또는 'guest'로 설정 가능
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className={`app ${view}`}>
       <KnockDetector onKnock={onKnock} />
@@ -240,7 +261,7 @@ function App() {
           handleVoiceInput={handleVoiceInput}
           weather={weather}
           uid={uid}
-          setUid={setUid}
+          user={user}
           setView={setView} // 2. setView prop 전달
         />
       )}

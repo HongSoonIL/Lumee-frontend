@@ -6,6 +6,9 @@ import { WeatherDescriptionWithIcon } from './weatherIconUtils';
 import PlanCard from './PlanCard';
 import { schedules } from './schedules';
 
+// Firebase 로그인 함수 import
+import { signInWithGoogle, logout } from '../../firebase';
+
 // ===== 날짜/캘린더 유틸 =====
 const weekdayShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
@@ -60,29 +63,30 @@ const Home = ({
   handleVoiceInput,
   weather,
   uid,
-  setUid,
+  user,
   setView,
 }) => {
-  // ===== 사용자 프로필 =====
-  const userProfiles = {
-    testUser1: {
-      name: 'Minseo',
-      image: `${process.env.PUBLIC_URL}/assets/icons/minseo_home.png`,
-      greeting: 'Hello, Minseo👋',
-    },
-    testUser2: {
-      name: 'Minjun',
-      image: `${process.env.PUBLIC_URL}/assets/icons/minjun_home.png`,
-      greeting: 'Hello, Minjun👋',
-    },
+  // 현재 사용자 정보 처리 로직 변경
+  // 로그인한 경우 user 정보를 쓰고, 아니면 기본 게스트 정보 표시
+  const currentUser = user ? {
+    name: user.displayName || 'User',
+    image: user.photoURL || `${process.env.PUBLIC_URL}/assets/icons/minseo_home.png`,
+    greeting: `Hello, ${user.displayName?.split(' ')[0] || 'There'}👋`
+  } : {
+    name: 'Guest',
+    image: `${process.env.PUBLIC_URL}/assets/icons/minseo_home.png`, // 기본 아이콘
+    greeting: 'Please Sign In 👋'
   };
 
-  const currentUser = userProfiles[uid] || userProfiles.testUser1;
-
-  const switchProfile = () => {
-    const newUid = uid === 'testUser1' ? 'testUser2' : 'testUser1';
-    setUid(newUid);
-    console.log(`🔄 프로필 전환: ${uid} → ${newUid}`);
+  // [수정] 프로필 버튼 클릭 핸들러 (로그인/로그아웃 토글)
+  const handleProfileClick = async () => {
+    if (user) {
+      if (window.confirm("Do you want to logout?")) {
+        await logout();
+      }
+    } else {
+      await signInWithGoogle();
+    }
   };
 
   // ===== 날짜 =====
@@ -349,9 +353,8 @@ const Home = ({
               {orbOptions.map((orb) => (
                 <div
                   key={orb.id}
-                  className={`orb-option ${
-                    selectedOrb === orb.id ? 'selected' : ''
-                  }`}
+                  className={`orb-option ${selectedOrb === orb.id ? 'selected' : ''
+                    }`}
                   onClick={() => selectOrb(orb.id)}
                 >
                   <div className="orb-preview">
@@ -413,15 +416,17 @@ const Home = ({
           </button>
         )}
 
+        {/* 프로필 버튼에 핸들러 연결 */}
         <button
           className="header-profile"
-          aria-label="프로필 전환"
-          onClick={switchProfile}
+          aria-label={user ? "로그아웃" : "Google 로그인"}
+          onClick={handleProfileClick}
         >
           <img
             src={currentUser.image}
-            alt={`${currentUser.name} 프로필`}
+            alt="프로필"
             className="profile-icon"
+            style={{ borderRadius: '50%' }} // 구글 프로필 이미지를 위해 원형 처리
           />
         </button>
       </header>
@@ -584,14 +589,12 @@ const Home = ({
 
         <div className="home-page-indicator">
           <span
-            className={`indicator-dot ${
-              activePage === 0 ? 'active' : ''
-            }`}
+            className={`indicator-dot ${activePage === 0 ? 'active' : ''
+              }`}
           />
           <span
-            className={`indicator-dot ${
-              activePage === 1 ? 'active' : ''
-            }`}
+            className={`indicator-dot ${activePage === 1 ? 'active' : ''
+              }`}
           />
         </div>
       </div>
