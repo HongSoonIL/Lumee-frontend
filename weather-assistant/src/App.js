@@ -203,6 +203,12 @@ function App() {
     handleVoiceInput();
   };
 
+  // 카메라 화면으로 이동하는 함수
+  const handleCameraClick = () => {
+    setPreviousView(view); // 현재 화면을 저장
+    setView('camera');
+  };
+
 
   // 기존 useEffect들 아래에 이 코드를 추가하세요
 
@@ -262,7 +268,8 @@ function App() {
           weather={weather}
           uid={uid}
           user={user}
-          setView={setView} // 2. setView prop 전달
+          setView={setView}
+          onCameraClick={handleCameraClick} // 카메라 클릭 핸들러 전달
         />
       )}
       {view === 'chat' && (
@@ -273,7 +280,7 @@ function App() {
           handleSend={handleSend}
           onBackToHome={handleBackToHome}
           handleVoiceInput={handleVoiceInput}
-          onCameraClick={() => setView('camera')}
+          onCameraClick={handleCameraClick}
         />
       )}
 
@@ -298,8 +305,9 @@ function App() {
       {/* 3. 'camera' 뷰 렌더링 로직 추가 */}
       {view === 'camera' && (
         <CameraScreen
-          onBack={() => setView('chat')} // 채팅에서 카메라로 왔으므로 채팅으로 돌아감
+          onBack={() => setView(previousView)} // 이전 화면(home 또는 chat)으로 돌아감
           uid={uid}
+          user={user}
         />
       )}
     </div>
