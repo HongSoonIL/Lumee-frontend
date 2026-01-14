@@ -65,16 +65,17 @@ const Home = ({
   uid,
   user,
   setView,
+  onCameraClick,
 }) => {
   // 현재 사용자 정보 처리 로직 변경
   // 로그인한 경우 user 정보를 쓰고, 아니면 기본 게스트 정보 표시
   const currentUser = user ? {
     name: user.displayName || 'User',
-    image: user.photoURL || `${process.env.PUBLIC_URL}/assets/icons/minseo_home.png`,
+    image: user.photoURL || `${process.env.PUBLIC_URL}/assets/icons/default_user.png`,
     greeting: `Hello, ${user.displayName?.split(' ')[0] || 'There'}👋`
   } : {
     name: 'Guest',
-    image: `${process.env.PUBLIC_URL}/assets/icons/minseo_home.png`, // 기본 아이콘
+    image: `${process.env.PUBLIC_URL}/assets/icons/default_user.png`, // 기본 아이콘
     greeting: 'Please Sign In 👋'
   };
 
@@ -323,7 +324,6 @@ const Home = ({
   const selectedSchedule =
     selectedDate &&
     schedules.find((s) => {
-      if (s.persona !== currentUser.name) return false;
       const [y, m, d] = s.date.split('-').map(Number);
       const scheduleDate = new Date(y, m - 1, d);
       return isSameDay(scheduleDate, selectedDate);
@@ -602,7 +602,7 @@ const Home = ({
       {/* 하단 입력창 */}
       <div className="footer-input">
         <div className="input-wrapper">
-          <button className="plus-button" onClick={() => setView('camera')}>
+          <button className="plus-button" onClick={onCameraClick}>
             <img
               src={`${process.env.PUBLIC_URL}/assets/icons/Camera.svg`}
               alt="카메라연결"

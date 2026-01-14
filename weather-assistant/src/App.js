@@ -45,7 +45,7 @@ function App() {
         setCoords({ latitude, longitude });
 
         try {
-          const res = await fetch('http://localhost:4000/reverse-geocode', {
+          const res = await fetch('http://localhost:4000/reverse-geocode', { //https://weather-assistant-backend1.onrender.com 주소 변경 필요
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
@@ -58,7 +58,7 @@ function App() {
         }
 
         try {
-          const res = await fetch('http://localhost:4000/weather', { //http로 변경
+          const res = await fetch('http://localhost:4000/weather', { //https://weather-assistant-backend1.onrender.com 주소 변경 필요
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
@@ -117,7 +117,7 @@ function App() {
 
     try {
       // ✅ 엔드포인트를 /chat으로 변경하고, uid를 함께 전송합니다.
-      const res = await fetch('http://localhost:4000/chat', {
+      const res = await fetch('http://localhost:4000/chat', { //https://weather-assistant-backend1.onrender.com 주소 변경 필요
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInput: messageText, location, coords, uid: uid }), //🔥 하드코딩된 값 대신 state 사용
@@ -203,6 +203,12 @@ function App() {
     handleVoiceInput();
   };
 
+  // 카메라 화면으로 이동하는 함수
+  const handleCameraClick = () => {
+    setPreviousView(view); // 현재 화면을 저장
+    setView('camera');
+  };
+
 
   // 기존 useEffect들 아래에 이 코드를 추가하세요
 
@@ -262,7 +268,8 @@ function App() {
           weather={weather}
           uid={uid}
           user={user}
-          setView={setView} // 2. setView prop 전달
+          setView={setView}
+          onCameraClick={handleCameraClick} // 카메라 클릭 핸들러 전달
         />
       )}
       {view === 'chat' && (
@@ -273,7 +280,7 @@ function App() {
           handleSend={handleSend}
           onBackToHome={handleBackToHome}
           handleVoiceInput={handleVoiceInput}
-          onCameraClick={() => setView('camera')}
+          onCameraClick={handleCameraClick}
         />
       )}
 
@@ -298,8 +305,9 @@ function App() {
       {/* 3. 'camera' 뷰 렌더링 로직 추가 */}
       {view === 'camera' && (
         <CameraScreen
-          onBack={() => setView('chat')} // 채팅에서 카메라로 왔으므로 채팅으로 돌아감
+          onBack={() => setView(previousView)} // 이전 화면(home 또는 chat)으로 돌아감
           uid={uid}
+          user={user}
         />
       )}
     </div>

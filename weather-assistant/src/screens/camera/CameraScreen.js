@@ -4,7 +4,7 @@ import './Camera_Cautions.css';
 import './Camera.css';
 import './Camera_Done.css';
 
-const CameraScreen = ({ onBack, uid }) => {
+const CameraScreen = ({ onBack, uid, user }) => {
   // 환경 변수에서 URL 가져오기
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
 
@@ -19,13 +19,8 @@ const CameraScreen = ({ onBack, uid }) => {
   // 브라우저 카메라를 위한 video ref
   const videoRef = useRef(null);
 
-  // 사용자 프로필
-  const userProfiles = {
-    testUser1: { name: '김민서' },
-    testUser2: { name: '이민준' }
-  };
-  const currentUser = userProfiles[uid] || userProfiles['testUser1'];
-  const userName = currentUser.name;
+  // 사용자 이름 설정 (실제 Google 계정 정보 사용)
+  const userName = user?.displayName || 'User';
 
   // 브라우저 카메라 스트림 초기화 및 정리
   useEffect(() => {
@@ -113,8 +108,27 @@ const CameraScreen = ({ onBack, uid }) => {
 
       // Base64 헤더 제거
       const base64Image = imageDataUrl.replace(/^data:image\/jpeg;base64,/, '');
-
       console.log('📤 백엔드로 이미지 전송 중...');
+
+      let latitude = null;
+      let longitude = null;
+
+      try {
+        console.log('위치 정보 요청 중...');
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 5000,
+            maximumAge: 0,
+            enableHighAccuracy: true
+          });
+        });
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        console.log('✅ 위치 정보:, ${latitude}, ${longitude}');
+      } catch (geoError) {
+        console.warn('❌ 위치 정보를 가져올 수 없습니다.:', geoError.message);
+      }
+
 
       // 백엔드에 이미지 분석 요청
       const response = await fetch(`${BACKEND_URL}/camera/analyze`, {
@@ -124,7 +138,9 @@ const CameraScreen = ({ onBack, uid }) => {
         },
         body: JSON.stringify({
           uid,
-          image: base64Image
+          image: base64Image,
+          latitude,
+          longitude
         })
       });
 
