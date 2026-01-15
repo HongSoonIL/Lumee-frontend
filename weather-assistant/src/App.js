@@ -11,10 +11,10 @@ import CameraScreen from './screens/camera/CameraScreen';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
+// 환경 변수에서 백엔드 URL 가져오기
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
 
 function App() {
-  // 환경 변수에서 백엔드 URL 가져오기
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
 
   const [view, setView] = useState('home');
   const [input, setInput] = useState('');
