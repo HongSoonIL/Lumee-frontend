@@ -69,6 +69,9 @@ const Home = ({
   setView,
   onCameraClick,
 }) => {
+  // 환경 변수에서 백엔드 URL 가져오기
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+
   // 현재 사용자 정보 처리 로직 변경
   // 로그인한 경우 user 정보를 쓰고, 아니면 기본 게스트 정보 표시
   const currentUser = user ? {
@@ -95,7 +98,7 @@ const Home = ({
 
     setIsLoadingCalendar(true);
     try {
-      const response = await fetch('http://localhost:4000/calendar/events', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+      const response = await fetch(`${BACKEND_URL}/calendar/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

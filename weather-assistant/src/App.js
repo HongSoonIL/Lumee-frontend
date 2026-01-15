@@ -13,6 +13,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 
 function App() {
+  // 환경 변수에서 백엔드 URL 가져오기
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+
   const [view, setView] = useState('home');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
@@ -45,7 +48,7 @@ function App() {
         setCoords({ latitude, longitude });
 
         try {
-          const res = await fetch('http://localhost:4000/reverse-geocode', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+          const res = await fetch(`${BACKEND_URL}/reverse-geocode`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
@@ -58,7 +61,7 @@ function App() {
         }
 
         try {
-          const res = await fetch('http://localhost:4000/weather', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+          const res = await fetch(`${BACKEND_URL}/weather`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude, longitude })
@@ -117,7 +120,7 @@ function App() {
 
     try {
       // ✅ 엔드포인트를 /chat으로 변경하고, uid를 함께 전송합니다.
-      const res = await fetch('http://localhost:4000/chat', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInput: messageText, location, coords, uid: uid }), //🔥 하드코딩된 값 대신 state 사용

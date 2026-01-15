@@ -12,6 +12,9 @@ const Chat = ({
   onBackToHome,
   onCameraClick
 }) => {
+  // 환경 변수에서 백엔드 URL 가져오기
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+
   //const chartRef = useRef(null); //경고메시지가 떠서 주석 처리하였습니다.
   const [chatTitle, setChatTitle] = useState(''); // 제목 상태 추가
 
@@ -29,7 +32,7 @@ const Chat = ({
 
       const generateTitle = async () => {
         try {
-          const response = await fetch('http://localhost:4000/generate-title', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+          const response = await fetch(`${BACKEND_URL}/generate-title`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userInput: messages[0].text })
