@@ -6,8 +6,11 @@ const KnockDetector = ({ onKnock }) => {
     const [status, setStatus] = useState('Disconnected');
 
     useEffect(() => {
+        // 환경 변수에서 WebSocket URL 가져오기
+        const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:4000';
+
         // 로컬 PC에서 실행 중인 중계 서버(bridge.js)에 연결
-        const ws = new WebSocket('ws://localhost:4000');
+        const ws = new WebSocket(WS_URL);
 
         ws.onopen = () => {
             console.log('중계 서버와 연결되었습니다.');
