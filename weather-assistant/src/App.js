@@ -26,6 +26,7 @@ function App() {
   // const [uid, setUid] = useState('user01');
   const [uid, setUid] = useState(null);
   const [user, setUser] = useState(null); // 로그인한 사용자 정보
+  const [calendarEvents, setCalendarEvents] = useState([]); // Google Calendar 일정
 
   // 진행 중인 요청을 추적하기 위한 ref
   const abortControllerRef = useRef(null);
@@ -123,7 +124,13 @@ function App() {
       const res = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userInput: messageText, location, coords, uid: uid }), //🔥 하드코딩된 값 대신 state 사용
+        body: JSON.stringify({
+          userInput: messageText,
+          location,
+          coords,
+          uid: uid,
+          schedule: calendarEvents // Google Calendar 일정 전달
+        }),
         signal // AbortController 신호 추가
       });
 
@@ -273,6 +280,8 @@ function App() {
           user={user}
           setView={setView}
           onCameraClick={handleCameraClick} // 카메라 클릭 핸들러 전달
+          calendarEvents={calendarEvents}
+          setCalendarEvents={setCalendarEvents}
         />
       )}
       {view === 'chat' && (

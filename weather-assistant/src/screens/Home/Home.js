@@ -1,6 +1,6 @@
 // src/screens/Home/Home.js
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Home.css';
 import { WeatherDescriptionWithIcon } from './weatherIconUtils';
 import PlanCard from './PlanCard';
@@ -68,6 +68,8 @@ const Home = ({
   user,
   setView,
   onCameraClick,
+  calendarEvents,
+  setCalendarEvents
 }) => {
   // 환경 변수에서 백엔드 URL 가져오기
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
@@ -85,11 +87,10 @@ const Home = ({
   };
 
   // ===== Google Calendar 일정 State =====
-  const [calendarEvents, setCalendarEvents] = useState([]);
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
 
   // ✨ 백엔드로부터 Google Calendar 일정 가져오기
-  const fetchCalendarEvents = async () => {
+  const fetchCalendarEvents = useCallback(async () => {
     const token = localStorage.getItem('googleAccessToken');
     if (!token) {
       console.log('❌ Access token not found');
@@ -175,7 +176,7 @@ const Home = ({
     } finally {
       setIsLoadingCalendar(false);
     }
-  };
+  }, [BACKEND_URL, setCalendarEvents]);
 
   // 프로필 버튼 클릭 핸들러 (로그인/로그아웃 토글)
   const handleProfileClick = async () => {
@@ -201,7 +202,7 @@ const Home = ({
     if (user && localStorage.getItem('googleAccessToken')) {
       fetchCalendarEvents();
     }
-  }, [user]); // user가 변경될 때마다 실행
+  }, [user, fetchCalendarEvents]); // user와 fetchCalendarEvents가 변경될 때마다 실행
 
   // ===== 날짜 =====
   const today = new Date();
