@@ -127,13 +127,37 @@ const Home = ({
           eventDate = event.date.split('T')[0];
         }
 
+        // 시간 정보 추출 및 포맷팅
+        let timeRange = 'All day';
+        if (event.start && event.start.includes('T')) {
+          // 시작 시간 파싱
+          const startTime = new Date(event.start);
+          const startHour = startTime.getHours();
+          const startMin = startTime.getMinutes().toString().padStart(2, '0');
+          const startPeriod = startHour >= 12 ? 'PM' : 'AM';
+          const startHour12 = startHour % 12 || 12;
+
+          // 종료 시간이 있으면 파싱
+          if (event.end && event.end.includes('T')) {
+            const endTime = new Date(event.end);
+            const endHour = endTime.getHours();
+            const endMin = endTime.getMinutes().toString().padStart(2, '0');
+            const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+            const endHour12 = endHour % 12 || 12;
+
+            timeRange = `${startHour12}:${startMin} ${startPeriod} - ${endHour12}:${endMin} ${endPeriod}`;
+          } else {
+            timeRange = `${startHour12}:${startMin} ${startPeriod}`;
+          }
+        }
+
         const formatted = {
           ...event,
           date: eventDate, // YYYY-MM-DD 형식 보장
           title: event.title || event.summary || 'Untitled Event',
           tag: event.tag || 'Event',
           subtitle: event.location ? `📍 ${event.location}` : (event.subtitle || '#Calendar'),
-          timeRange: event.timeRange || 'All day',
+          timeRange: event.timeRange || timeRange, // 추출한 시간 사용
           etaText: event.etaText || '',
           body: event.body || event.description || '',
           location: event.location || ''
