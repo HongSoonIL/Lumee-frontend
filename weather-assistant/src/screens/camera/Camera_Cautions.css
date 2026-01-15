@@ -77,7 +77,8 @@
   align-items: center;
   justify-content: center;
 
-  font-size: 30px;  /* X 조금 더 선명하게 */
+  font-size: 30px;
+  /* X 조금 더 선명하게 */
   line-height: 1;
   color: #ffffff;
   cursor: pointer;
@@ -85,9 +86,10 @@
 
 /* 제목 블록 */
 .app-container.camera-cautions .camera-sheet-title {
-  margin-top: 0px;          /* 🔽 기본보다 조금 내려서 */
+  margin-top: 0px;
+  /* 🔽 기본보다 조금 내려서 */
   margin-bottom: 22px;
-  font-family: 'SUIT', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
   font-weight: 700;
   font-size: 24px;
   line-height: 1.45;
@@ -108,9 +110,9 @@
 .app-container.camera-cautions .camera-sheet-description {
   margin-bottom: 60px;
   text-align: center;
-  font-family: 'SUIT', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
   font-size: 14px;
-  font-weight: 300;  
+  font-weight: 300;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -135,8 +137,8 @@
   backdrop-filter: blur(8px);
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.18);
 
-  font-family: 'SUIT', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  font-size: 14px; 
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-size: 16px;
   font-weight: 100;
   line-height: 1.7;
   color: #ffffff;
@@ -152,7 +154,8 @@
 ============================ */
 .app-container.camera-cautions .camera-sheet-confirm {
   position: absolute;
-  top: 825px; /* ← ⭐ 원하는 정확한 위치 */
+  top: 825px;
+  /* ← ⭐ 원하는 정확한 위치 */
 
   left: 50%;
   transform: translateX(-50%);
@@ -168,8 +171,8 @@
   backdrop-filter: blur(8px);
   box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.25);
 
-  font-family: 'SUIT', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  font-size: 16px;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-size: 18px;
   font-weight: 100;
   color: #ffffff;
 

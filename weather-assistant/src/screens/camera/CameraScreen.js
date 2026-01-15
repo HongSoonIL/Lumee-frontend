@@ -60,13 +60,15 @@ const CameraScreen = ({ onBack, uid, user }) => {
 
     // 클린업: 컴포넌트 언마운트 또는 단계 변경 시 스트림 정지
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const video = videoRef.current;
+      if (video?.srcObject) {
+        const tracks = video.srcObject.getTracks();
         tracks.forEach(track => {
           track.stop();
           console.log('🛑 카메라 트랙 정지됨');
         });
-        videoRef.current.srcObject = null;
+        video.srcObject = null;
         setStreamReady(false);
       }
     };
@@ -124,7 +126,7 @@ const CameraScreen = ({ onBack, uid, user }) => {
         });
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
-        console.log('✅ 위치 정보:, ${latitude}, ${longitude}');
+        console.log(`✅ 위치 정보: ${latitude}, ${longitude}`);
       } catch (geoError) {
         console.warn('❌ 위치 정보를 가져올 수 없습니다.:', geoError.message);
       }
@@ -214,33 +216,27 @@ const CameraScreen = ({ onBack, uid, user }) => {
         </button>
 
         <div className="camera-sheet-title">
-          <span className="camera-sheet-title-highlight">스캔 전에</span>
+          <span className="camera-sheet-title-highlight">Before scanning</span>
           <br />
-          <span className="camera-sheet-title-highlight">이건 꼭 알아두세요!</span>
+          <span className="camera-sheet-title-highlight">Make sure you know this!</span>
         </div>
 
         <div className="camera-sheet-description">
-          정확하고 디테일한 복장 및 피부 스캔을 위해,
+          For accurate and detailed skin scanning,
           <br />
-          아래 지정된 선 안에서 카메라를 정면으로 바라봐 주세요.
+          please look straight to the camera.
         </div>
 
         <div className="camera-tip-card">
-          알레르기나 발진 부위가 있다면 해당
-          <br />
-          부위가 잘 보이도록 촬영해 주세요.
+          If you have allergies or rashes, please make sure the affected area is visible.
         </div>
 
         <div className="camera-tip-card">
-          오늘 챙긴 마스크, 모자 등 소지품이
-          <br />
-          스캔에 포함될 수 있도록 해주세요.
+          Accessories such as masks, hats, etc. should be included in the scan.
         </div>
 
         <div className="camera-tip-card">
-          정면에서 피부 톤과 컨디션이
-          <br />
-          잘 보이도록 스캔해 주세요.
+          Scan your skin tone and condition from the front.
         </div>
 
         <button
@@ -249,7 +245,7 @@ const CameraScreen = ({ onBack, uid, user }) => {
           onClick={() => setStep('before')}
           disabled={loading}
         >
-          {loading ? '연결 중...' : '다음으로'}
+          {loading ? 'Connecting...' : 'Next'}
         </button>
       </div>
     </div>
@@ -303,7 +299,7 @@ const CameraScreen = ({ onBack, uid, user }) => {
             textAlign: 'center',
             zIndex: 2
           }}>
-            📷 카메라 로딩 중...
+            📷 Camera Loading...
           </div>
         )}
       </div>
