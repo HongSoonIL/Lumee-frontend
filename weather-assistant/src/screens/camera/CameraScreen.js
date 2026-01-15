@@ -4,6 +4,15 @@ import './Camera_Cautions.css';
 import './Camera.css';
 import './Camera_Done.css';
 
+// 브라우저 언어 감지 함수
+const detectLanguage = () => {
+  const browserLang = navigator.language || navigator.userLanguage;
+  // "ko-KR" -> "ko", "en-US" -> "en"
+  const lang = browserLang.toLowerCase().startsWith('ko') ? 'ko' : 'en';
+  console.log(`🌐 감지된 언어: ${browserLang} -> ${lang}`);
+  return lang;
+};
+
 const CameraScreen = ({ onBack, uid, user }) => {
   // 환경 변수에서 URL 가져오기
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
@@ -119,9 +128,9 @@ const CameraScreen = ({ onBack, uid, user }) => {
         console.log('위치 정보 요청 중...');
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 5000,
-            maximumAge: 0,
-            enableHighAccuracy: true
+            timeout: 10000,  // 10초로 증가
+            maximumAge: 60000,  // 1분간 캐시된 위치 사용 가능
+            enableHighAccuracy: false  // WiFi 기반 위치 사용 (더 빠름)
           });
         });
         latitude = position.coords.latitude;
@@ -142,7 +151,8 @@ const CameraScreen = ({ onBack, uid, user }) => {
           uid,
           image: base64Image,
           latitude,
-          longitude
+          longitude,
+          language: detectLanguage()  // 👈 언어 정보 추가
         })
       });
 
@@ -390,9 +400,9 @@ const CameraScreen = ({ onBack, uid, user }) => {
 
       <div className="scan-message">
         <span className="scan-username">{userName}</span>
-        <span> 님의 착장을</span>
+        <span>'s outfit</span>
         <br />
-        <span>스캔하고 있어요...</span>
+        <span>scanning...</span>
       </div>
 
       {/* 로딩 스피너 */}
@@ -462,9 +472,9 @@ const CameraScreen = ({ onBack, uid, user }) => {
 
       <div className="scan-complete">
         <span className="scan-complete-username">{userName}</span>
-        <span> 님의 착장</span>
+        <span>`s outfit</span>
         <br />
-        <span>스캔을 완료했어요</span>
+        <span>scan complete</span>
       </div>
 
       {/* 촬영된 사진 프리뷰 */}
