@@ -28,8 +28,8 @@ const CameraScreen = ({ onBack, uid, user }) => {
   // 브라우저 카메라를 위한 video ref
   const videoRef = useRef(null);
 
-  // 사용자 이름 설정 (실제 Google 계정 정보 사용)
-  const userName = user?.displayName || 'User';
+  // 사용자 이름 설정 (실제 Google 계정 정보 사용, 없으면 'user')
+  const userName = user?.displayName || 'user';
 
   // 브라우저 카메라 스트림 초기화 및 정리
   useEffect(() => {
