@@ -30,16 +30,15 @@ function formatMonthYear(date) {
   }).format(date); // ex) December 2025
 }
 
-// 🔒 캘린더를 14~20일로 고정해서 보여주는 함수
+// ✨ 오늘부터 7일간의 날짜를 보여주는 함수
 function getWeekDates(baseDate) {
   const d = new Date(baseDate);
-  const year = d.getFullYear();
-  const month = d.getMonth();
-
   const arr = [];
+
   for (let i = 0; i < 7; i++) {
-    // 14,15,16,17,18,19,20일 고정
-    arr.push(new Date(year, month, 14 + i));
+    const nextDate = new Date(d);
+    nextDate.setDate(d.getDate() + i);
+    arr.push(nextDate);
   }
   return arr;
 }
@@ -677,7 +676,12 @@ const Home = ({
                   <button
                     key={d.toISOString()}
                     className={`calendar-day${selected ? ' selected' : ''}`}
-                    onClick={() => setSelectedDate(d)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedDate(d);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                   >
                     <span className="calendar-day-date">{d.getDate()}</span>
                     <span className="calendar-day-weekday">
