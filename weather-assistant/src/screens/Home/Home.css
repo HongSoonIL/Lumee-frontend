@@ -1,9 +1,12 @@
 /* 홈 화면에서 텍스트 드래그/블록 선택 방지 */
 .app-container,
 .app-container * {
-  -webkit-user-select: none; /* Safari, Chrome */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* IE/Edge */
+  -webkit-user-select: none;
+  /* Safari, Chrome */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE/Edge */
   user-select: none;
 }
 
@@ -19,7 +22,7 @@
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   z-index: 1000;
-  
+
   /* 부드러운 등장 애니메이션 */
   animation: fadeIn 0.3s ease-out;
 }
@@ -29,6 +32,7 @@
     opacity: 0;
     backdrop-filter: blur(0px);
   }
+
   to {
     opacity: 1;
     backdrop-filter: blur(8px);
@@ -42,17 +46,17 @@
   left: 0;
   width: 330px;
   height: 100vh;
-  
+
   background: rgba(9, 24, 55, 0.95);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  
+
   display: flex;
   flex-direction: column;
-  
+
   /* 왼쪽에서 슬라이드 인 애니메이션 */
   animation: slideInFromLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  
+
   overflow-y: auto;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
 }
@@ -62,6 +66,7 @@
     transform: translateX(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -84,7 +89,7 @@
   font-weight: 600;
   color: #FFFFFF;
   margin: 0;
-  
+
   /* 제목과 배지 사이 간격 */
   display: flex;
   align-items: center;
@@ -97,20 +102,20 @@
   font-size: 12px;
   font-weight: 700;
   color: #091837;
-  
+
   /* 그라데이션 배경 */
   background: linear-gradient(90deg, #97F5FD 0%, #EEB4F3 100%);
   padding: 4px 12px;
   border-radius: 12px;
-  
+
   /* 그림자 효과 */
-  box-shadow: 
+  box-shadow:
     0 3px 10px rgba(151, 245, 253, 0.3),
     0 1px 6px rgba(238, 180, 243, 0.2);
-  
+
   /* 부드러운 애니메이션 */
   transition: all 0.3s ease;
-  
+
   /* 미묘한 발광 효과 */
   animation: betaGlow 3s ease-in-out infinite;
 }
@@ -118,24 +123,28 @@
 /* BETA 배지 호버 효과 */
 .beta-badge:hover {
   transform: translateY(-1px) scale(1.05);
-  box-shadow: 
+  box-shadow:
     0 5px 15px rgba(151, 245, 253, 0.4),
     0 2px 8px rgba(238, 180, 243, 0.3);
 }
 
 /* BETA 배지 발광 애니메이션 */
 @keyframes betaGlow {
-  0%, 100% {
-    box-shadow: 
+
+  0%,
+  100% {
+    box-shadow:
       0 3px 10px rgba(151, 245, 253, 0.3),
       0 1px 6px rgba(238, 180, 243, 0.2);
   }
+
   50% {
-    box-shadow: 
+    box-shadow:
       0 3px 15px rgba(151, 245, 253, 0.5),
       0 1px 8px rgba(238, 180, 243, 0.4);
   }
 }
+
 .menu-close-btn {
   width: 32px;
   height: 32px;
@@ -143,11 +152,11 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   cursor: pointer;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   transition: all 0.2s ease;
 }
 
@@ -161,35 +170,168 @@
   height: 16px;
 }
 
-/* 구슬 옵션 컨테이너 */
-.orb-options {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* ===== User Preferences Section ===== */
+
+
+.user-preferences-section {
+  padding: 16px 20px;
+  overflow-y: auto;
 }
 
-/* 개별 구슬 옵션 */
-.orb-option {
+.preferences-section-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0 0 16px 0;
+  padding: 0;
+}
+
+/* Divider between sections */
+.preferences-divider {
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%);
+  margin: 20px 0;
+}
+
+/* ===== Sensitivity Sliders ===== */
+
+.sensitivity-slider-wrapper {
+  margin-bottom: 20px;
+}
+
+.slider-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.slider-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.slider-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Custom Range Slider */
+.custom-range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-range-slider:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Slider Thumb - WebKit (Chrome, Safari) */
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #97F5FD 0%, #EEB4F3 100%);
+  cursor: pointer;
+  box-shadow:
+    0 2px 8px rgba(151, 245, 253, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 3px 12px rgba(151, 245, 253, 0.6),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.custom-range-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+/* Slider Thumb - Firefox */
+.custom-range-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #97F5FD 0%, #EEB4F3 100%);
+  cursor: pointer;
+  border: none;
+  box-shadow:
+    0 2px 8px rgba(151, 245, 253, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.custom-range-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 3px 12px rgba(151, 245, 253, 0.6),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Slider Labels */
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.slider-labels span {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== Daily Routine Toggles ===== */
+
+.routine-toggle-wrapper {
+  margin-bottom: 18px;
+}
+
+.toggle-switch {
+  display: flex;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.05);
-  
+  border-radius: 10px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggle-option {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  outline: none;
   position: relative;
-  
-  /* 호버 효과를 위한 오버플로우 숨김 */
   overflow: hidden;
 }
 
-.orb-option::before {
+.toggle-option::before {
   content: '';
   position: absolute;
   top: 0;
@@ -200,85 +342,32 @@
   transition: left 0.5s ease;
 }
 
-.orb-option:hover::before {
+.toggle-option:hover::before {
   left: 100%;
 }
 
-.orb-option:hover {
-  border-color: rgba(151, 245, 253, 0.3);
+.toggle-option:hover {
+  color: rgba(255, 255, 255, 0.8);
   background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(151, 245, 253, 0.15);
 }
 
-.orb-option.selected {
-  border-color: rgba(151, 245, 253, 0.5);
-  background: rgba(151, 245, 253, 0.1);
-  box-shadow: 0 4px 20px rgba(151, 245, 253, 0.2);
-}
-
-/* 구슬 프리뷰 영상 */
-.orb-preview {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.orb-preview-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-/* 구슬 정보 */
-.orb-info {
-  flex: 1;
-}
-
-.orb-info h4 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
+.toggle-option.active {
+  color: #091837;
+  background: linear-gradient(135deg, #97F5FD 0%, #EEB4F3 100%);
   font-weight: 500;
-  color: #FFFFFF;
-  margin: 0 0 4px 0;
-  line-height: 1.2;
+  box-shadow:
+    0 2px 8px rgba(151, 245, 253, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
-.orb-info p {
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0;
-  line-height: 1.3;
+.toggle-option.active:hover {
+  box-shadow:
+    0 3px 12px rgba(151, 245, 253, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
 }
 
-/* 메뉴 푸터 */
-.menu-footer {
-  padding: 16px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.beta-notice {
-  font-family: 'Poppins', sans-serif;
-  font-size: 11px;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.6);
-  text-align: center;
-  margin: 0;
-  line-height: 1.4;
-  
-  padding: 8px 12px;
-  background: rgba(238, 180, 243, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(238, 180, 243, 0.2);
+.toggle-option.active::before {
+  display: none;
 }
 
 /* 모바일 반응형 */
@@ -286,28 +375,35 @@
   .side-menu {
     width: 290px;
   }
-  
-  .orb-preview {
-    width: 50px;
-    height: 50px;
-  }
-  
+
   .menu-header {
     padding: 20px 16px 12px;
   }
-  
-  .orb-options {
-    padding: 16px;
+
+  /* User Preferences 모바일 최적화 */
+  .user-preferences-section {
+    padding: 12px 16px;
   }
-  
-  .orb-option {
-    padding: 12px;
+
+  .preferences-section-title {
+    font-size: 14px;
   }
-  
-  /* 모바일에서 구슬 설명 폰트 크기 줄이기 */
-  .orb-info p {
-    font-size: 11px;
-    line-height: 1.2;
+
+  .slider-label {
+    font-size: 12px;
+  }
+
+  .slider-emoji {
+    font-size: 16px;
+  }
+
+  .slider-labels span {
+    font-size: 9px;
+  }
+
+  .toggle-option {
+    font-size: 12px;
+    padding: 7px 10px;
   }
 }
 
@@ -324,14 +420,16 @@
   width: 100%;
   height: 56px;
   position: absolute;
-  top: calc(59px + env(safe-area-inset-top, 0px)); /* 안전영역 추가 */
-  
+  top: calc(59px + env(safe-area-inset-top, 0px));
+  /* 안전영역 추가 */
+
   background: transparent;
-  
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 min(20px, 5vw); /* 반응형 패딩 */
+  padding: 0 min(20px, 5vw);
+  /* 반응형 패딩 */
   z-index: 10;
 }
 
@@ -350,13 +448,15 @@
 
 /* 메뉴 버튼에 마우스 올렸을 때 효과 */
 .header-menu-btn:hover {
-  transform: scale(1.05);          /* 크기를 5% 확대 */
+  transform: scale(1.05);
+  /* 크기를 5% 확대 */
   opacity: 0.8;
 }
 
 /* 메뉴 버튼 클릭했을 때 효과 */
 .header-menu-btn:active {
-  transform: scale(0.95);          /* 크기를 5% 축소 */
+  transform: scale(0.95);
+  /* 크기를 5% 축소 */
 }
 
 
@@ -367,16 +467,20 @@
   border: none !important;
   padding: 0;
   outline: none;
-  
+
   /* 레이아웃 */
-  display: flex;      /* 📍과 Seoul을 나란히 배치 */
-  align-items: center; /* 세로로 가운데 정렬 */
-  gap: 3px;          /* 📍과 Seoul 사이 간격 */         
-  
+  display: flex;
+  /* 📍과 Seoul을 나란히 배치 */
+  align-items: center;
+  /* 세로로 가운데 정렬 */
+  gap: 3px;
+  /* 📍과 Seoul 사이 간격 */
+
   /* 헤더에서 중앙 배치 */
   /* flex: 1; 남은 공간을 모두 차지 */
-  justify-content: center; /* 가로로 가운데 정렬 */
-  
+  justify-content: center;
+  /* 가로로 가운데 정렬 */
+
   /* 마우스 올리면 손가락 모양으로 변경 */
   cursor: pointer;
   /* transition: all 0.2s ease; */
@@ -389,7 +493,8 @@
 
 /* 위치 이름 버튼 클릭했을 때 효과 (위치 이름 클릭했을 때 위치 직접 검색도 기능도 구현 확장성을 고려해 버튼으로 만들어 둠 */
 .header-location:active {
-  transform: scale(0.95);          /* 클릭시 크기 5% 축소 */
+  transform: scale(0.95);
+  /* 클릭시 크기 5% 축소 */
 }
 
 /* 헤더 위치 버튼 - 텍스트 오버플로우 개선 */
@@ -398,11 +503,12 @@
   font-size: clamp(18px, 5.1vw, 22px);
   font-weight: 400;
   color: #FFFFFF;
-  
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100vw - min(160px, 40vw)); /* 메뉴 버튼과 프로필 공간 제외 */
+  max-width: calc(100vw - min(160px, 40vw));
+  /* 메뉴 버튼과 프로필 공간 제외 */
 }
 
 
@@ -433,7 +539,8 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-    border: none;                    /* 실제 border는 없애고 */
+  border: none;
+  /* 실제 border는 없애고 */
   transition: all 0.25s ease;
 }
 
@@ -446,8 +553,10 @@
 
   /* 전체적으로 균일하게 안쪽 Glow */
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),   /* 은은한 테두리 */
-    inset 0 0 8px rgba(255, 255, 255, 0.18);    /* 전체 Glow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    /* 은은한 테두리 */
+    inset 0 0 8px rgba(255, 255, 255, 0.18);
+  /* 전체 Glow */
 
   /* 특정 위치만 밝아지는 radial-gradient 제거!! */
   background: transparent;
@@ -470,16 +579,24 @@
 
 /* 프로필 사진 - 자동 크기 조정 */
 .profile-image {
-  width: 100% !important;        /* 부모(32px)에 맞게 가로 크기 */
-  height: 100% !important;       /* 부모(32px)에 맞게 세로 크기 */
-  object-fit: cover;             /* 비율 유지하면서 영역 꽉 채우기 */
-  object-position: center;       /* 사진 중앙 부분 보여주기 */
-  display: block;                /* 기본 여백 제거 */
-  
+  width: 100% !important;
+  /* 부모(32px)에 맞게 가로 크기 */
+  height: 100% !important;
+  /* 부모(32px)에 맞게 세로 크기 */
+  object-fit: cover;
+  /* 비율 유지하면서 영역 꽉 채우기 */
+  object-position: center;
+  /* 사진 중앙 부분 보여주기 */
+  display: block;
+  /* 기본 여백 제거 */
+
   /* 추가 보장 */
-  max-width: none;               /* 최대 크기 제한 해제 */
-  max-height: none;              /* 최대 크기 제한 해제 */
-  flex-shrink: 0;                /* 줄어들지 않게 */
+  max-width: none;
+  /* 최대 크기 제한 해제 */
+  max-height: none;
+  /* 최대 크기 제한 해제 */
+  flex-shrink: 0;
+  /* 줄어들지 않게 */
 }
 
 /* 아이콘 크기  */
@@ -494,27 +611,31 @@
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
-  display: block;          
+  display: block;
 }
 
 /* 날짜  */
 .date {
 
-  width: auto; /* 텍스트 길이에 따라 자동 조정 */
+  width: auto;
+  /* 텍스트 길이에 따라 자동 조정 */
   height: 38px;
-  
+
   position: absolute;
-  top: 115px;                    /* 상태바(59) + 헤더(56) = 115px */
-  left: 50%;                     /* 부모 요소 가로 길이의 50% 지점에서 시작 */
-  transform: translateX(-50%);   /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
-  
+  top: 115px;
+  /* 상태바(59) + 헤더(56) = 115px */
+  left: 50%;
+  /* 부모 요소 가로 길이의 50% 지점에서 시작 */
+  transform: translateX(-50%);
+  /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
+
   font-family: 'Poppins', sans-serif;
   font-size: 18px;
   font-weight: 400;
   color: #FFFFFF;
   text-align: center;
-  line-height: 38px; 
-  
+  line-height: 38px;
+
   margin: 0;
 }
 
@@ -522,21 +643,24 @@
 /* 기온 */
 .temperature {
 
-  width: auto; /* 텍스트 길이에 따라 자동 조정 */
+  width: auto;
+  /* 텍스트 길이에 따라 자동 조정 */
   height: 69px;
-  
+
   position: absolute;
-  top: 165px;                    
-  left: 50%;                     /* 부모 요소 가로 길이의 50% 지점에서 시작 */
-  transform: translateX(-50%);   /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
-  
+  top: 165px;
+  left: 50%;
+  /* 부모 요소 가로 길이의 50% 지점에서 시작 */
+  transform: translateX(-50%);
+  /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
+
   font-family: 'Poppins', sans-serif;
   font-size: 64px;
   font-weight: 600;
   color: #FFFFFF;
   text-align: center;
-  line-height: 69px; 
-  
+  line-height: 69px;
+
   margin: 0;
 }
 
@@ -545,41 +669,48 @@
 /* 기상 정보 */
 .description {
 
-  width: auto; /* 텍스트 길이에 따라 자동 조정 */
+  width: auto;
+  /* 텍스트 길이에 따라 자동 조정 */
   height: 22px;
-  
+
   position: absolute;
-  top: 242px;                    /* 상태바(59) + 헤더(56) + 날짜(38) = 153px */
-  left: 50%;                     /* 부모 요소 가로 길이의 50% 지점에서 시작 */
-  transform: translateX(-50%);   /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
-  
+  top: 242px;
+  /* 상태바(59) + 헤더(56) + 날짜(38) = 153px */
+  left: 50%;
+  /* 부모 요소 가로 길이의 50% 지점에서 시작 */
+  transform: translateX(-50%);
+  /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
+
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 300;
   color: #FFFFFF;
   text-align: center;
-  line-height: 22px; 
-  
+  line-height: 22px;
+
   margin: 0;
 }
 
 /* 체감/최고/최저 */
 .sub-summary {
-  width: auto; /* 텍스트 길이에 따라 자동 조정 */
+  width: auto;
+  /* 텍스트 길이에 따라 자동 조정 */
   height: 22px;
-  
+
   position: absolute;
-  top: 268px;                 
-  left: 50%;                     /* 부모 요소 가로 길이의 50% 지점에서 시작 */
-  transform: translateX(-50%);   /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
-  
+  top: 268px;
+  left: 50%;
+  /* 부모 요소 가로 길이의 50% 지점에서 시작 */
+  transform: translateX(-50%);
+  /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
+
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 300;
   color: #FFFFFF99;
   text-align: center;
-  line-height: 20px; 
-  
+  line-height: 20px;
+
   margin: 0;
 }
 
@@ -589,48 +720,56 @@
   height: 270px;
   position: absolute;
   top: 290px;
-  left: 50%;                    /* 화면 중앙에서 시작 */
-  transform: translateX(-50%);  /* 자기 크기의 절반만큼 왼쪽으로 이동 */
-  pointer-events: none; /* 사용자 클릭 방지 */
-  z-index: 0;            /* 맨 뒤에 배치 (다른 요소들 아래) */
+  left: 50%;
+  /* 화면 중앙에서 시작 */
+  transform: translateX(-50%);
+  /* 자기 크기의 절반만큼 왼쪽으로 이동 */
+  pointer-events: none;
+  /* 사용자 클릭 방지 */
+  z-index: 0;
+  /* 맨 뒤에 배치 (다른 요소들 아래) */
 }
 
 .greeting {
-  width: auto; /* 텍스트 길이에 따라 자동 조정 */
+  width: auto;
+  /* 텍스트 길이에 따라 자동 조정 */
   height: 23px;
-  
+
   position: absolute;
-  top: 558px;                 
-  left: 50%;                     /* 부모 요소 가로 길이의 50% 지점에서 시작 */
-  transform: translateX(-50%);   /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
-  
+  top: 558px;
+  left: 50%;
+  /* 부모 요소 가로 길이의 50% 지점에서 시작 */
+  transform: translateX(-50%);
+  /* 자기 자신의 가로 길이의 50%만큼 왼쪽으로 이동 */
+
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 500;
   color: #FFFFFF;
   text-align: center;
-  line-height: 23px; 
-  
+  line-height: 23px;
+
   margin: 0;
 }
 
 /* 메인 질문 - 마진 적용 */
 .main-question {
-  width: calc(100% - min(40px, 10vw)); /* 헤더와 동일한 마진 */
+  width: calc(100% - min(40px, 10vw));
+  /* 헤더와 동일한 마진 */
   max-width: 386px;
   height: 30px;
-  
+
   position: absolute;
   top: calc(582px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
-  
+
   font-family: 'Poppins', sans-serif;
   font-size: clamp(18px, 4.7vw, 20px);
   font-weight: 600;
   text-align: center;
   line-height: 30px;
-  
+
   /* 그라데이션 텍스트 */
   background: linear-gradient(90deg, #97F5FD 0%, #EEB4F3 100%);
   color: #FFFFFF;
@@ -638,7 +777,7 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   color: transparent;
-  
+
   margin: 0;
 }
 
@@ -647,22 +786,26 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: min(16px, 4vw);
-  
+
   position: absolute;
   top: calc(635px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - min(40px, 10vw)); /* 헤더 패딩 * 2 만큼 빼기 */
-  max-width: 390px; /* 최대 너비 제한 */
-  
+  width: calc(100% - min(40px, 10vw));
+  /* 헤더 패딩 * 2 만큼 빼기 */
+  max-width: 390px;
+  /* 최대 너비 제한 */
+
   padding: 0;
-  margin: -5px 0 0 0;   /* 🔥 위로 5px 올리기 */
+  margin: -5px 0 0 0;
+  /* 🔥 위로 5px 올리기 */
 }
 
 
 /* 개별 FAQ 카드 래퍼 - 꼭 필요 */
 .FAQ-card {
-  position: relative;              /* 편집 버튼 절대 위치 기준점 */
+  position: relative;
+  /* 편집 버튼 절대 위치 기준점 */
   width: 100%;
   height: 79px;
 }
@@ -674,23 +817,23 @@
   width: 100%;
   height: 100%;
   padding: 16px;
-  
+
   /* 레이아웃 */
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   /* 모양 */
   border-radius: 16px;
   border: 0.5px solid rgba(255, 255, 255, 0.3);
-  
+
   /* 배경 */
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(8px);
-  
+
   /* 그림자 */
   box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.15);
-  
+
   /* 텍스트 */
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
@@ -698,11 +841,11 @@
   color: #FFFFFF;
   text-align: left;
   line-height: 22px;
-  
+
   /* 인터랙션 */
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   /* 기본 스타일 초기화 */
   margin: 0;
   outline: none;
@@ -738,40 +881,45 @@
 /* 편집 버튼 */
 .FAQ-edit-btn {
   /* 위치 - 카드 우측 상단 */
-  position: absolute !important;   /* 중요: 다른 스타일 덮어쓰기 방지 */
+  position: absolute !important;
+  /* 중요: 다른 스타일 덮어쓰기 방지 */
   top: -7px;
   right: 0px;
-  
+
   /* 크기 */
   width: 20px;
   height: 20px;
-  
+
   /* 모양 */
   border-radius: 25px;
-  border: none;                    /* 외부 테두리 제거 */
-  
+  border: none;
+  /* 외부 테두리 제거 */
+
   /* 배경 */
   background: rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(8px);
-  
+
   /* 그림자 - 안쪽 테두리 + 외부 그림자 */
-  box-shadow: 
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.3), /* 안쪽 테두리 */
-    0px 4px 12px 0px rgba(0, 0, 0, 0.15);        /* 외부 그림자 */
-  
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.3),
+    /* 안쪽 테두리 */
+    0px 4px 12px 0px rgba(0, 0, 0, 0.15);
+  /* 외부 그림자 */
+
   /* 레이아웃 */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  
+
   /* 패딩 초기화 */
   padding: 0 !important;
   margin: 0 !important;
-  
+
   /* 인터랙션 */
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;                     /* FAQ 버튼 위에 표시 */
+  z-index: 10;
+  /* FAQ 버튼 위에 표시 */
   outline: none;
 }
 
@@ -779,9 +927,11 @@
 .FAQ-edit-btn:hover {
   background: rgba(255, 255, 255, 0.15) !important;
   transform: scale(1.1);
-  box-shadow: 
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.3), /* 안쪽 테두리 */
-    0px 4px 12px 0px rgba(0, 0, 0, 0.15);        /* 외부 그림자 */
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.3),
+    /* 안쪽 테두리 */
+    0px 4px 12px 0px rgba(0, 0, 0, 0.15);
+  /* 외부 그림자 */
 }
 
 /* 편집 버튼 클릭 효과 */
@@ -792,8 +942,8 @@
 
 /* 편집 아이콘 스타일 */
 .edit-icon {
-  width: 12px;                 
-  height: 12px; 
+  width: 12px;
+  height: 12px;
   background: transparent !important;
   border: none !important;
   padding: 0;
@@ -813,22 +963,22 @@
   /* 크기 - 카드 전체 크기 */
   width: 100%;
   height: 100%;
-  
+
   /* 레이아웃 */
   display: flex;
   flex-direction: column;
-  
+
   /* 모양 */
   border-radius: 16px;
   border: 0.5px solid rgba(255, 255, 255, 0.3);
-  
+
   /* 배경 */
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(8px);
-  
+
   /* 그림자 */
   box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.15);
-  
+
   padding: 8px;
   position: relative;
 }
@@ -837,12 +987,12 @@
 .FAQ-edit-input {
   flex: 1;
   width: 100%;
-  
+
   /* 모양 */
   border: none;
   background: transparent;
   border-radius: 8px;
-  
+
   /* 텍스트 - 기본 FAQ와 동일하게 */
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
@@ -850,17 +1000,17 @@
   color: #FFFFFF;
   line-height: 22px;
   text-align: left;
-  
+
   /* 레이아웃 */
   padding: 4px 8px;
   resize: none;
   outline: none;
-  
+
   /* 텍스트 오버플로우 처리 - FAQ 버튼과 동일 */
   overflow: hidden;
   word-wrap: break-word;
   word-break: break-word;
-  
+
   /* 스크롤바 숨기기 */
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -887,16 +1037,16 @@
 .FAQ-cancel-btn {
   flex: 1;
   height: 20px;
-  
+
   /* 모양 */
   border: none;
   border-radius: 6px;
-  
+
   /* 텍스트 */
   font-family: 'Poppins', sans-serif;
   font-size: 10px;
   font-weight: 500;
-  
+
   /* 인터랙션 */
   cursor: pointer;
   transition: all 0.2s ease;
@@ -938,17 +1088,17 @@
 .footer-input {
   position: absolute;
   top: 809px;
-  
+
   /* 헤더처럼 padding으로 마진 처리 */
   left: 0;
   right: 0;
   padding: 24px min(20px, 5vw) 51px min(20px, 5vw) !important;
-  
+
   display: flex;
-  gap: 8px; 
+  gap: 8px;
   align-items: center;
   justify-content: center;
-  
+
   margin: 0 !important;
   z-index: 20;
 }
@@ -963,10 +1113,10 @@
   background: #FFFFFF;
 
   /* 기본 그림자 효과 추가 */
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(151, 245, 253, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.08);
-  
+
   /* 부드러운 전환 효과 */
   transition: box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -979,19 +1129,20 @@
   padding: 13px 56px 13px 48px;
 
   text-indent: 35px;
-  
+
   /* 모양 */
   border-radius: 71px;
   border: none;
-  background: transparent;  /* 배경 투명 */
-  
+  background: transparent;
+  /* 배경 투명 */
+
   /* 텍스트 */
   font-family: 'Poppins', 'Noto Sans KR', sans-serif;
   font-size: 14px;
   font-weight: 400;
   color: #091837;
   line-height: 22px;
-  
+
   outline: none;
   margin: 0;
 }
@@ -1009,7 +1160,7 @@
 
 /* 입력창 호버 효과 */
 .input-wrapper:hover {
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(151, 245, 253, 0.3),
     0 0 25px rgba(238, 180, 243, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.1);
@@ -1017,7 +1168,7 @@
 
 /* 입력창 포커스 효과 */
 .input-wrapper:focus-within {
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(151, 245, 253, 0.4),
     0 0 30px rgba(238, 180, 243, 0.3),
     0 6px 15px rgba(0, 0, 0, 0.12);
@@ -1029,20 +1180,20 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  
-  width: 32px;  
+
+  width: 32px;
   height: 32px;
   border: none;
   background: transparent;
   border-radius: 50%;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   cursor: pointer;
   outline: none;
-  
+
 }
 
 /* 마이크 버튼 안의 이미지 */
@@ -1071,30 +1222,30 @@
   height: 48px;
   min-width: 48px;
   min-height: 48px;
-  
+
   border-radius: 50%;
   border: none;
   background: linear-gradient(45deg, #97F5FD 15.63%, #EEB4F3 85.42%);
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   cursor: pointer;
   transition: box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   outline: none;
   padding: 0;
   margin: 0;
-  
+
   position: relative;
   overflow: hidden;
-  
+
   /* 기본 그림자 효과 - 입력창과 동일 */
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(151, 245, 253, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    
+
   /* 미묘한 그라데이션 애니메이션 */
   animation: subtleGradientShift 15s ease-in-out infinite;
 
@@ -1108,13 +1259,11 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: conic-gradient(
-    from 0deg,
-    transparent,
-    rgba(151, 245, 253, 0.4),
-    rgba(238, 180, 243, 0.4),
-    transparent
-  );
+  background: conic-gradient(from 0deg,
+      transparent,
+      rgba(151, 245, 253, 0.4),
+      rgba(238, 180, 243, 0.4),
+      transparent);
   animation: auroraFlow 4s linear infinite;
   border-radius: 50%;
   filter: blur(2px);
@@ -1131,7 +1280,7 @@
 
 /* 전송 버튼 호버 효과 - 입력창과 동일 */
 .send-button:hover {
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(151, 245, 253, 0.3),
     0 0 25px rgba(238, 180, 243, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.1),
@@ -1140,7 +1289,7 @@
 
 /* 전송 버튼 클릭 효과 - 입력창과 동일 */
 .send-button:active {
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(151, 245, 253, 0.4),
     0 0 30px rgba(238, 180, 243, 0.3),
     0 6px 15px rgba(0, 0, 0, 0.12),
@@ -1149,8 +1298,13 @@
 
 /* 오로라 흐름 애니메이션 */
 @keyframes auroraFlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 미묘한 그라데이션 애니메이션 */
@@ -1158,15 +1312,19 @@
   0% {
     background: linear-gradient(45deg, #97F5FD 15.63%, #EEB4F3 85.42%);
   }
+
   25% {
     background: linear-gradient(50deg, #97F5FD 12%, #EEB4F3 88%);
   }
+
   50% {
     background: linear-gradient(40deg, #97F5FD 19%, #EEB4F3 81%);
   }
+
   75% {
     background: linear-gradient(52deg, #97F5FD 14%, #EEB4F3 86%);
   }
+
   100% {
     background: linear-gradient(45deg, #97F5FD 15.63%, #EEB4F3 85.42%);
   }
@@ -1177,7 +1335,7 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 
+  box-shadow:
     0 0 10px rgba(151, 245, 253, 0.2),
     0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -1197,7 +1355,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px; /* 아이콘과 텍스트 사이 간격 */
+  gap: 4px;
+  /* 아이콘과 텍스트 사이 간격 */
 }
 
 /* 날씨 아이콘 스타일 */
@@ -1205,7 +1364,8 @@
   width: 16px !important;
   height: 16px !important;
   color: #FFFFFF;
-  flex-shrink: 0; /* 아이콘 크기 고정 */
+  flex-shrink: 0;
+  /* 아이콘 크기 고정 */
 }
 
 /* 날씨 텍스트 스타일 */
@@ -1221,66 +1381,66 @@
 
 /* iPhone SE 크기 및 작은 모바일 대응 */
 @media screen and (max-width: 414px) and (max-height: 736px) {
-  
+
   /* 헤더 위치 조정 */
   .weather-header {
     top: calc(44px + env(safe-area-inset-top, 0px)) !important;
   }
-  
+
   /* 날짜 위치 조정 */
   .date {
     top: 85px !important;
     font-size: 16px !important;
   }
-  
+
   /* 온도 위치 및 크기 조정 */
   .temperature {
     top: 112px !important;
     font-size: 48px !important;
   }
-  
+
   /* 날씨 설명 위치 조정 */
   .description {
     top: 174px !important;
     font-size: 14px !important;
   }
-  
+
   /* 체감온도 등 부가정보 위치 조정 */
   .sub-summary {
     top: 195px !important;
     font-size: 12px !important;
   }
-  
+
   /* 마법 구슬 위치 및 크기 조정 */
   .lumee-magic-orb {
     width: 160px !important;
     height: 160px !important;
     top: 210px !important;
   }
-  
+
   /* 인사말 위치 조정 */
   .greeting {
     top: 360px !important;
     font-size: 14px !important;
   }
-  
+
   /* 메인 질문 위치 조정 */
   .main-question {
     top: calc(380px + env(safe-area-inset-top, 0px)) !important;
     font-size: 16px !important;
   }
-  
+
   /* FAQ 버튼들 위치 조정 */
   .FAQ-buttons {
     top: calc(420px + env(safe-area-inset-top, 0px)) !important;
     gap: 10px !important;
   }
-  
+
   /* FAQ 카드 높이 조정 */
   .FAQ-card {
     height: 60px !important;
   }
-  
+
   /* FAQ 버튼 패딩 및 폰트 조정 */
   .FAQ-button {
     padding: 10px !important;
@@ -1290,17 +1450,19 @@
 
   /* FAQ 편집 입력창 반응형 - FAQ 버튼과 동일 */
   .FAQ-edit-input {
-    font-size: 12px !important; /* FAQ 버튼과 동일 */
-    line-height: 16px !important; /* FAQ 버튼과 동일 */
+    font-size: 12px !important;
+    /* FAQ 버튼과 동일 */
+    line-height: 16px !important;
+    /* FAQ 버튼과 동일 */
     padding: 3px 6px !important;
   }
-  
+
   /* 저장/취소 버튼도 함께 조정 */
   .FAQ-save-btn,
   .FAQ-cancel-btn {
     font-size: 9px !important;
   }
-  
+
   /* 입력창을 하단 고정으로 변경 */
   .footer-input {
     position: fixed !important;
@@ -1314,19 +1476,19 @@
 
 /* 삼성 갤럭시 S8 및 비슷한 크기 대응 (360x740px) */
 @media screen and (max-width: 360px) and (min-height: 740px) {
-  
+
   /* 헤더 위치 조정 */
   .weather-header {
     top: calc(56px + env(safe-area-inset-top, 0px)) !important;
     height: 50px !important;
   }
-  
+
   /* 날짜 위치 조정 */
   .date {
     top: 105px !important;
     font-size: 16px !important;
   }
-  
+
   /* 온도 위치 및 크기 조정 */
   .temperature {
     top: 140px !important;
@@ -1334,51 +1496,51 @@
     height: 60px !important;
     line-height: 60px !important;
   }
-  
+
   /* 날씨 설명 위치 조정 */
   .description {
     top: 200px !important;
     font-size: 14px !important;
   }
-  
+
   /* 체감온도 등 부가정보 위치 조정 */
   .sub-summary {
     top: 225px !important;
     font-size: 12px !important;
   }
-  
+
   /* 마법 구슬 위치 및 크기 조정 */
   .lumee-magic-orb {
     width: 180px !important;
     height: 180px !important;
     top: 240px !important;
   }
-  
+
   /* 인사말 위치 조정 */
   .greeting {
     top: 415px !important;
     font-size: 14px !important;
   }
-  
+
   /* 메인 질문 위치 조정 */
   .main-question {
     top: calc(435px + env(safe-area-inset-top, 0px)) !important;
     font-size: 17px !important;
     max-width: 320px !important;
   }
-  
+
   /* FAQ 버튼들 위치 조정 */
   .FAQ-buttons {
     top: calc(475px + env(safe-area-inset-top, 0px)) !important;
     gap: 12px !important;
     max-width: 320px !important;
   }
-  
+
   /* FAQ 카드 높이 조정 */
   .FAQ-card {
     height: 70px !important;
   }
-  
+
   /* FAQ 버튼 패딩 및 폰트 조정 */
   .FAQ-button {
     padding: 12px !important;
@@ -1388,29 +1550,31 @@
 
   /* FAQ 편집 입력창 반응형 - FAQ 버튼과 동일 */
   .FAQ-edit-input {
-    font-size: 13px !important; /* FAQ 버튼과 동일 */
-    line-height: 18px !important; /* FAQ 버튼과 동일 */
+    font-size: 13px !important;
+    /* FAQ 버튼과 동일 */
+    line-height: 18px !important;
+    /* FAQ 버튼과 동일 */
     padding: 4px 7px !important;
   }
-  
+
   /* 저장/취소 버튼도 함께 조정 */
   .FAQ-save-btn,
   .FAQ-cancel-btn {
     font-size: 9px !important;
   }
-  
+
   /* 입력창 위치 조정 */
   .footer-input {
     top: 615px !important;
     padding: 20px 16px 40px 16px !important;
   }
-  
+
   /* 입력창 높이 조정 */
   .footer-input input {
     height: 44px !important;
     font-size: 13px !important;
   }
-  
+
   /* 전송 버튼 크기 조정 */
   .send-button {
     width: 44px !important;
@@ -1418,19 +1582,19 @@
     min-width: 44px !important;
     min-height: 44px !important;
   }
-  
+
   .send-button img {
     width: 20px !important;
     height: 20px !important;
   }
-  
+
   /* 마이크 버튼 크기 조정 */
   .mic-button {
     width: 28px !important;
     height: 28px !important;
     right: 10px !important;
   }
-  
+
   .mic-button img {
     width: 20px !important;
     height: 20px !important;
@@ -1479,29 +1643,29 @@
 
 /* 더 작은 화면 대응 (Galaxy S8보다 작은 경우) */
 @media screen and (max-width: 320px) {
-  
+
   /* 헤더 위치명 폰트 크기 추가 조정 */
   .header-location-name {
     font-size: 18px !important;
   }
-  
+
   /* 온도 폰트 크기 추가 조정 */
   .temperature {
     font-size: 48px !important;
   }
-  
+
   /* 마법 구슬 크기 추가 조정 */
   .lumee-magic-orb {
     width: 160px !important;
     height: 160px !important;
   }
-  
+
   /* 메인 질문 폰트 크기 조정 */
   .main-question {
     font-size: 16px !important;
     max-width: 280px !important;
   }
-  
+
   /* FAQ 버튼 최대 너비 조정 */
   .FAQ-buttons {
     max-width: 280px !important;
@@ -1509,22 +1673,24 @@
 
   /* FAQ 편집 입력창 반응형 - 가장 작은 화면 */
   .FAQ-edit-input {
-    font-size: 13px !important; /* Galaxy S8과 동일 */
-    line-height: 18px !important; /* Galaxy S8과 동일 */
+    font-size: 13px !important;
+    /* Galaxy S8과 동일 */
+    line-height: 18px !important;
+    /* Galaxy S8과 동일 */
     padding: 3px 6px !important;
   }
-  
+
   /* 편집 모드 패딩도 조정 */
   .FAQ-edit-mode {
     padding: 6px !important;
   }
-  
+
   /* 버튼 컨테이너 마진 조정 */
   .FAQ-edit-buttons {
     gap: 3px !important;
     margin-top: 3px !important;
   }
-  
+
   /* 저장/취소 버튼도 함께 조정 */
   .FAQ-save-btn,
   .FAQ-cancel-btn {
@@ -1543,7 +1709,8 @@
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;   /* 다른 페이지는 가려두기 */
+  overflow: hidden;
+  /* 다른 페이지는 가려두기 */
 }
 
 /* 두 페이지(홈, 캘린더)를 가로로 나란히 배치 */
@@ -1552,7 +1719,8 @@
   top: 0;
   left: 0;
   display: flex;
-  width: 200%;        /* 페이지 2개 → 200% */
+  width: 200%;
+  /* 페이지 2개 → 200% */
   height: 100%;
   transition: transform 0.35s ease-out;
 }
@@ -1560,7 +1728,8 @@
 /* 각 페이지 공통 */
 .home-page {
   position: relative;
-  flex: 0 0 50%;      /* 200% 중 절반 = 기기 한 화면 */
+  flex: 0 0 50%;
+  /* 200% 중 절반 = 기기 한 화면 */
   width: 50%;
   height: 100%;
 }
@@ -1625,7 +1794,8 @@
   outline: none;
   padding: 8px 0;
 
-  position: relative;       /* 🔥 선택 시 스케일/그라데이션용 */
+  position: relative;
+  /* 🔥 선택 시 스케일/그라데이션용 */
   overflow: hidden;
 
   transition:
@@ -1637,7 +1807,8 @@
 
 /* 선택된 날짜 – 이름 Pill이랑 같은 그라데이션 */
 .calendar-day.selected {
-  background: linear-gradient(to bottom, #97F5FD 0%, #EEB4F3 100%); /* 🔥 이름 Pill이랑 동일 */
+  background: linear-gradient(to bottom, #97F5FD 0%, #EEB4F3 100%);
+  /* 🔥 이름 Pill이랑 동일 */
   border-color: transparent;
   transform: translateY(-3px) scale(1.06);
   box-shadow:
@@ -1687,7 +1858,8 @@
 /* ===== 하단 페이지 인디케이터 (동그라미 2개) ===== */
 .home-page-indicator {
   position: absolute;
-  bottom: 95px; /* 입력창 위에 살짝 */
+  bottom: 95px;
+  /* 입력창 위에 살짝 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1717,12 +1889,12 @@
 /* 일정 카드가 들어갈 영역 */
 .calendar-plan-wrapper {
   position: absolute;
-  top: 340px;              /* "Today / Choose the day" 아래 */
+  top: 340px;
+  /* "Today / Choose the day" 아래 */
   left: 0;
   width: 100%;
   padding: 0 24px 40px;
-  box-sizing
-  : border-box;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
 }
@@ -1849,7 +2021,8 @@
   font-family: 'Poppins', sans-serif;
   font-size: 18px;
   font-weight: 400;
-  color: #FFFFFF; /* 파란 배경 위에 하얀 글씨 */
+  color: #FFFFFF;
+  /* 파란 배경 위에 하얀 글씨 */
 
   /* 가운데 정렬용 */
   display: flex;

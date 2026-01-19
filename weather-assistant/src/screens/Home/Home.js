@@ -285,64 +285,61 @@ const Home = ({
   // ===== 사이드 메뉴 =====
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // ===== 마법 구슬 =====
-  const orbOptions = [
-    {
-      id: 'default',
-      name: 'Default',
-      description: 'Original magic orb',
-      videoSrc: {
-        mp4: 'https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748854350/LumeeMagicOrb_Safari_rdmthi.mov',
-        webm: 'https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748852283/LumeeMagicOrb_WEBM_tfqoa4.webm',
-      },
-    },
-    {
-      id: 'dust',
-      name: 'Fine Dust',
-      description: 'Fine dust-reactive magic orb',
-      videoSrc: {
-        mp4: 'https://res.cloudinary.com/dpuw0gcaf/video/upload/v1749988390/finedustLumee_Safari_tkyral.mov',
-        webm: 'https://res.cloudinary.com/dpuw0gcaf/video/upload/v1749988390/finedustLumee_Chrome_filwol.webm',
-      },
-    },
-    {
-      id: 'rain',
-      name: 'Rain',
-      description: 'Rain-reactive magic orb',
-      videoSrc: {
-        mp4: 'https://res.cloudinary.com/dpuw0gcaf/video/upload/v1749984449/rainLumee_Safari_iyfm0v.mov',
-        webm: 'https://res.cloudinary.com/dpuw0gcaf/video/upload/v1749984445/rainLumee_WEBM_xblf7o.webm',
-      },
-    },
-  ];
-
-  const [selectedOrb, setSelectedOrb] = useState(() => {
+  // ===== 사용자 선호도 (Sensitivity & Daily Routine) =====
+  const [userPreferences, setUserPreferences] = useState(() => {
     try {
-      const savedOrb = localStorage.getItem('lumeeSelectedOrb');
-      return savedOrb || 'default';
+      const savedPrefs = localStorage.getItem('lumeeUserPreferences');
+      return savedPrefs ? JSON.parse(savedPrefs) : {
+        sensitivity: {
+          cold: 50,        // 0-100: 0=강철체력, 100=매우추위탐
+          heat: 50,        // 0-100: 0=사막가능, 100=녹아내림
+          fineDust: 50,    // 0-100: 0=신경안씀, 100=매우예민
+          rain: 50         // 0-100: 0=비좋아함, 100=매우싫음
+        },
+        routine: {
+          transport: 'walk',    // 'walk' | 'drive'
+          style: 'casual',      // 'formal' | 'casual'
+          activeTime: 'morning' // 'morning' | 'night'
+        }
+      };
     } catch (error) {
-      console.error('구슬 설정 로드 실패:', error);
-      return 'default';
+      console.error('사용자 선호도 로드 실패:', error);
+      return {
+        sensitivity: { cold: 50, heat: 50, fineDust: 50, rain: 50 },
+        routine: { transport: 'walk', style: 'casual', activeTime: 'morning' }
+      };
     }
   });
 
-  const getCurrentOrb = () =>
-    orbOptions.find((orb) => orb.id === selectedOrb) || orbOptions[0];
+  // 슬라이더 값 변경 핸들러
+  const handleSensitivityChange = (key, value) => {
+    setUserPreferences(prev => ({
+      ...prev,
+      sensitivity: {
+        ...prev.sensitivity,
+        [key]: parseInt(value)
+      }
+    }));
+  };
 
-  const currentOrb = getCurrentOrb();
+  // 토글 값 변경 핸들러
+  const handleRoutineChange = (key, value) => {
+    setUserPreferences(prev => ({
+      ...prev,
+      routine: {
+        ...prev.routine,
+        [key]: value
+      }
+    }));
+  };
 
-  // ===== 사이드 메뉴/구슬 함수 =====
+  // ===== 사이드 메뉴 함수 =====
   const toggleMenu = () => {
     setIsMenuOpen((v) => !v);
   };
 
   const closeMenu = () => {
     setIsMenuOpen(false);
-  };
-
-  const selectOrb = (orbId) => {
-    setSelectedOrb(orbId);
-    closeMenu();
   };
 
   // ===== 슬라이더 (홈 / 캘린더) =====
@@ -406,13 +403,15 @@ const Home = ({
     }
   }, [faqItems]);
 
+
+
   useEffect(() => {
     try {
-      localStorage.setItem('lumeeSelectedOrb', selectedOrb);
+      localStorage.setItem('lumeeUserPreferences', JSON.stringify(userPreferences));
     } catch (error) {
-      console.error('구슬 설정 저장 실패:', error);
+      console.error('사용자 선호도 저장 실패:', error);
     }
-  }, [selectedOrb]);
+  }, [userPreferences]);
 
   // ===== FAQ 저장/취소 =====
   const saveEdit = () => {
@@ -457,7 +456,7 @@ const Home = ({
           <div className="side-menu" onClick={(e) => e.stopPropagation()}>
             <div className="menu-header">
               <h3>
-                Orb Selection <span className="beta-badge">BETA</span>
+                Settings <span className="beta-badge">BETA</span>
               </h3>
               <button className="menu-close-btn" onClick={closeMenu}>
                 <img
@@ -468,42 +467,157 @@ const Home = ({
               </button>
             </div>
 
-            <div className="orb-options">
-              {orbOptions.map((orb) => (
-                <div
-                  key={orb.id}
-                  className={`orb-option ${selectedOrb === orb.id ? 'selected' : ''
-                    }`}
-                  onClick={() => selectOrb(orb.id)}
-                >
-                  <div className="orb-preview">
-                    <video
-                      className="orb-preview-video"
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                    >
-                      <source
-                        src={orb.videoSrc.mp4}
-                        type='video/mp4; codecs="hvc1"'
-                      />
-                      <source src={orb.videoSrc.webm} type="video/webm" />
-                    </video>
-                  </div>
-                  <div className="orb-info">
-                    <h4>{orb.name}</h4>
-                    <p>{orb.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* ===== User Preferences Section ===== */}
+            <div className="user-preferences-section">
+              <h4 className="preferences-section-title">🎚️ Weather Sensitivity</h4>
 
-            <div className="menu-footer">
-              <p className="beta-notice">
-                This is a BETA feature. Auto-reactive orbs & more styles coming
-                soon!
-              </p>
+              {/* Cold Sensitivity Slider */}
+              <div className="sensitivity-slider-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">🌡️</span>
+                  <span className="slider-label">추위 타는 정도</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={userPreferences.sensitivity.cold}
+                  onChange={(e) => handleSensitivityChange('cold', e.target.value)}
+                  className="custom-range-slider"
+                />
+                <div className="slider-labels">
+                  <span>강철 체력</span>
+                  <span>추워요</span>
+                </div>
+              </div>
+
+              {/* Heat Sensitivity Slider */}
+              <div className="sensitivity-slider-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">🌡️</span>
+                  <span className="slider-label">더위 타는 정도</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={userPreferences.sensitivity.heat}
+                  onChange={(e) => handleSensitivityChange('heat', e.target.value)}
+                  className="custom-range-slider"
+                />
+                <div className="slider-labels">
+                  <span>사막 가능</span>
+                  <span>더워요</span>
+                </div>
+              </div>
+
+              {/* Fine Dust Sensitivity Slider */}
+              <div className="sensitivity-slider-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">🤧</span>
+                  <span className="slider-label">미세먼지 민감도</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={userPreferences.sensitivity.fineDust}
+                  onChange={(e) => handleSensitivityChange('fineDust', e.target.value)}
+                  className="custom-range-slider"
+                />
+                <div className="slider-labels">
+                  <span>신경 안 씀</span>
+                  <span>매우 예민</span>
+                </div>
+              </div>
+
+              {/* Rain Sensitivity Slider */}
+              <div className="sensitivity-slider-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">💧</span>
+                  <span className="slider-label">비/습도 불쾌도</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={userPreferences.sensitivity.rain}
+                  onChange={(e) => handleSensitivityChange('rain', e.target.value)}
+                  className="custom-range-slider"
+                />
+                <div className="slider-labels">
+                  <span>비 좋아함</span>
+                  <span>매우 싫음</span>
+                </div>
+              </div>
+
+              <h4 className="preferences-section-title" style={{ marginTop: '24px' }}>🎯 Daily Routine</h4>
+
+              {/* Transport Toggle */}
+              <div className="routine-toggle-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">🚌</span>
+                  <span className="slider-label">주요 이동 수단</span>
+                </div>
+                <div className="toggle-switch">
+                  <button
+                    className={`toggle-option ${userPreferences.routine.transport === 'walk' ? 'active' : ''}`}
+                    onClick={() => handleRoutineChange('transport', 'walk')}
+                  >
+                    대중교통
+                  </button>
+                  <button
+                    className={`toggle-option ${userPreferences.routine.transport === 'drive' ? 'active' : ''}`}
+                    onClick={() => handleRoutineChange('transport', 'drive')}
+                  >
+                    자차
+                  </button>
+                </div>
+              </div>
+
+              {/* Style Toggle */}
+              <div className="routine-toggle-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">👕</span>
+                  <span className="slider-label">옷차림 무드</span>
+                </div>
+                <div className="toggle-switch">
+                  <button
+                    className={`toggle-option ${userPreferences.routine.style === 'formal' ? 'active' : ''}`}
+                    onClick={() => handleRoutineChange('style', 'formal')}
+                  >
+                    포멀
+                  </button>
+                  <button
+                    className={`toggle-option ${userPreferences.routine.style === 'casual' ? 'active' : ''}`}
+                    onClick={() => handleRoutineChange('style', 'casual')}
+                  >
+                    캐주얼
+                  </button>
+                </div>
+              </div>
+
+              {/* Active Time Toggle */}
+              <div className="routine-toggle-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">🕒</span>
+                  <span className="slider-label">주 활동 시간</span>
+                </div>
+                <div className="toggle-switch">
+                  <button
+                    className={`toggle-option ${userPreferences.routine.activeTime === 'morning' ? 'active' : ''}`}
+                    onClick={() => handleRoutineChange('activeTime', 'morning')}
+                  >
+                    아침형
+                  </button>
+                  <button
+                    className={`toggle-option ${userPreferences.routine.activeTime === 'night' ? 'active' : ''}`}
+                    onClick={() => handleRoutineChange('activeTime', 'night')}
+                  >
+                    올빼미형
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -589,14 +703,13 @@ const Home = ({
                 loop
                 muted
                 playsInline
-                key={selectedOrb}
                 controls={false}
               >
                 <source
-                  src={currentOrb.videoSrc.mp4}
+                  src="https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748854350/LumeeMagicOrb_Safari_rdmthi.mov"
                   type='video/mp4; codecs="hvc1"'
                 />
-                <source src={currentOrb.videoSrc.webm} type="video/webm" />
+                <source src="https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748852283/LumeeMagicOrb_WEBM_tfqoa4.webm" type="video/webm" />
               </video>
             </div>
 
