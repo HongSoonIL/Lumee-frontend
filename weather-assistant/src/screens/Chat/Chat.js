@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './Chat.css';
 import WeatherLineChart from './WeatherLineChart';
 import DustLevelChart from './DustLevelChart';
+import PollenLevelChart from './PollenLevelChart';
 
 const Chat = ({
   messages,
@@ -162,6 +163,15 @@ const Chat = ({
                     {/* 👇 미세먼지 시각화 그래프를 나중에 렌더링 */}
                     {m.dust && typeof m.dust.value === 'number' && (
                       <DustLevelChart value={m.dust.value} date={m.dust.date} />
+                    )}
+
+                    {/* 👇 꽃가루 시각화 그래프 렌더링 */}
+                    {m.pollen && typeof m.pollen.value === 'number' && (
+                      <PollenLevelChart
+                        value={m.pollen.value}
+                        category={m.pollen.category}
+                        date={m.pollen.date}
+                      />
                     )}
                   </div>
                 )}
