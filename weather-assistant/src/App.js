@@ -157,6 +157,7 @@ function App() {
             graph: data.graph || null,
             graphDate: data.graphDate || null,
             dust: data.dust || null,
+            pollen: data.pollen || null,  // 🌸 꽃가루 데이터 추가!
             videoUrl: data.videoUrl || null  // 🎬 여기에 추가!
           }
         ];
