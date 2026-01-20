@@ -88,6 +88,15 @@ const Home = ({
   // ===== Google Calendar 일정 State =====
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
 
+  const [showEventForm, setShowEventForm] = useState(false); // 입력창 열림/닫힘 상태
+  const [newEvent, setNewEvent] = useState({
+    summary: '',
+    location: '',
+    description: '',
+    startTime: '', // 빈 값으로 시작 (필수 선택 유도)
+    endTime: ''
+  });
+
   // ✨ 백엔드로부터 Google Calendar 일정 가져오기
   const fetchCalendarEvents = useCallback(async () => {
     const token = localStorage.getItem('googleAccessToken');
@@ -176,6 +185,78 @@ const Home = ({
       setIsLoadingCalendar(false);
     }
   }, [BACKEND_URL, setCalendarEvents]);
+
+  // ✨ 백엔드에 일정 추가 요청 보내기
+  const addCalendarEvent = async () => {
+    const token = localStorage.getItem('googleAccessToken');
+    if (!token) {
+      alert("Please sign in first.");
+      return;
+    }
+
+    // 유효성 검사 (시간을 선택 안 했으면 중단)
+    if (!newEvent.summary || !newEvent.startTime || !newEvent.endTime) {
+      alert("Please enter a title and select both start and end times! ⏰");
+      return;
+    }
+
+    // 날짜와 시간 합치기
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const startISO = `${dateStr}T${newEvent.startTime}:00+09:00`;
+    const endISO = `${dateStr}T${newEvent.endTime}:00+09:00`;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/calendar/events/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: token,
+          summary: newEvent.summary,
+          location: newEvent.location,
+          description: newEvent.description,
+          startDateTime: startISO,
+          endDateTime: endISO,
+        }),
+      });
+
+      if (response.ok) {
+        alert("Event added successfully! 🎉");
+        setShowEventForm(false); // 폼 닫기
+        setNewEvent({ summary: '', location: '', description: '', startTime: '', endTime: '' }); // 초기화
+        fetchCalendarEvents(); // 목록 새로고침
+      } else {
+        alert("Failed to add event.");
+      }
+    } catch (error) {
+      console.error("Add Event Error:", error);
+    }
+  };
+
+  // 일정 삭제
+  const deleteCalendarEvent = async (eventId) => {
+    if (!window.confirm("이 일정을 삭제하시겠습니까?")) return;
+
+    const token = localStorage.getItem('googleAccessToken');
+    try {
+      const response = await fetch(`${BACKEND_URL}/calendar/events/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: token,
+          eventId: eventId
+        }),
+      });
+
+      if (response.ok) {
+        alert("일정이 삭제되었습니다.");
+        fetchCalendarEvents(); // 목록 새로고침
+        // setSelectedDate(null); // 선택 초기화
+        
+      }
+    } catch (error) {
+      console.error("삭제 에러:", error);
+    }
+  };
 
   // 프로필 버튼 클릭 핸들러 (로그인/로그아웃 토글)
   const handleProfileClick = async () => {
@@ -822,10 +903,66 @@ const Home = ({
                 </div>
               ) : selectedDate ? (
                 selectedSchedule ? (
-                  <PlanCard schedule={selectedSchedule} />
+                  <div className="plan-card-container" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <PlanCard schedule={selectedSchedule} />
+                    {/* ✅ 삭제 버튼 추가 */}
+                    <button 
+                      className="delete-event-btn" 
+                      onClick={() => deleteCalendarEvent(selectedSchedule.id)}
+                      style={{
+                        marginTop: '15px',
+                        color: '#ff4d4d',
+                        background: 'rgba(255, 77, 77, 0.1)',
+                        border: '1px solid rgba(255, 77, 77, 0.3)',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete Event
+                    </button>
+                  </div>
                 ) : (
-                  <div className="plan-card-empty-text">
-                    No schedule for this day.
+
+                  <div className="plan-card-empty-wrapper">
+                    {!showEventForm ? (
+                      <>
+                        <div className="plan-card-empty-text">No schedule for this day.</div>
+                        <button className="add-event-btn" onClick={() => setShowEventForm(true)}>
+                          + Add New Event
+                        </button>
+                      </>
+                    ) : (
+                      <div className="event-input-form">
+                        <input 
+                          type="text" placeholder="Title (Required)" 
+                          className="event-form-input"
+                          value={newEvent.summary}
+                          onChange={(e) => setNewEvent({...newEvent, summary: e.target.value})} 
+                        />
+                        <input 
+                          type="text" placeholder="Location" 
+                          className="event-form-input"
+                          value={newEvent.location}
+                          onChange={(e) => setNewEvent({...newEvent, location: e.target.value})} 
+                        />
+                        <textarea 
+                          placeholder="Description" 
+                          className="event-form-textarea"
+                          value={newEvent.description}
+                          onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} 
+                        />
+                        <div className="time-picker-row">
+                          <input type="time" onChange={(e) => setNewEvent({...newEvent, startTime: e.target.value})} />
+                          <span style={{color: 'white'}}>~</span>
+                          <input type="time" onChange={(e) => setNewEvent({...newEvent, endTime: e.target.value})} />
+                        </div>
+                        <div className="form-action-btns">
+                          <button onClick={addCalendarEvent} className="save-btn">Save</button>
+                          <button onClick={() => setShowEventForm(false)} className="cancel-btn">Cancel</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               ) : null}

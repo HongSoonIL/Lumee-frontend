@@ -2029,3 +2029,149 @@
   align-items: center;
   justify-content: center;
 }
+
+.plan-card-empty-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.add-event-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* =========================
+    📅 일정 추가 입력 폼 스타일
+========================= */
+
+/* 입력 폼 전체 컨테이너 */
+.event-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 330px; /* 사이드 메뉴 너비와 통일감 */
+  margin: 0 auto;
+  padding: 20px;
+  
+  /* Lumee 스타일: 유리 효과 */
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 입력창 공통 스타일 (제목, 장소, 설명) */
+.event-form-input, 
+.event-form-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.event-form-input:focus, 
+.event-form-textarea:focus {
+  border-color: #97F5FD;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 10px rgba(151, 245, 253, 0.2);
+}
+
+.event-form-textarea {
+  height: 80px;
+  resize: none;
+}
+
+/* 시간 선택 행 (가로 배치) */
+.time-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.time-picker-row input[type="time"] {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* 시간 입력창 내 시계 아이콘 색상 변경 (브라우저 지원용) */
+.time-picker-row input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* 하단 버튼 영역 */
+.form-action-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* 저장 버튼: Lumee 메인 그라데이션 적용 */
+.save-btn {
+  flex: 1.5;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #97F5FD 0%, #EEB4F3 100%);
+  color: #091837;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(151, 245, 253, 0.4);
+}
+
+.save-btn:active {
+  transform: translateY(0);
+}
+
+/* 취소 버튼: 은은한 배경 */
+.cancel-btn {
+  flex: 1;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
