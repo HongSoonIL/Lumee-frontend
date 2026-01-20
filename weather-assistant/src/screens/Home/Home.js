@@ -200,10 +200,37 @@ const Home = ({
       return;
     }
 
-    // 날짜와 시간 합치기
+    // ---- [추가] 시간 파싱 & duration 계산 (자정 넘어가는 일정 포함) ----
+    const [sh, sm] = newEvent.startTime.split(':').map(Number);
+    const [eh, em] = newEvent.endTime.split(':').map(Number);
+
+    const startMinutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+
+    // 자정 넘어가는 경우: 다음날로 가정해서 duration 계산
+    let durationMinutes = endMinutes - startMinutes;
+    if (durationMinutes <= 0) {
+      durationMinutes += 24 * 60;
+    }
+
+    // 최대 23.5시간(1410분) 제한
+    const MAX_MINUTES = 23 * 60 + 30; // 1410
+    if (durationMinutes > MAX_MINUTES) {
+      alert("Event duration can't exceed 23.5 hours.");
+      return;
+    }
+
+    // 날짜와 시간 합치기 (자정 넘어가면 endDate는 다음날)
     const dateStr = selectedDate.toISOString().split('T')[0];
+
+    const endDateObj = new Date(selectedDate);
+    if (endMinutes <= startMinutes) {
+      endDateObj.setDate(endDateObj.getDate() + 1);
+    }
+    const endDateStr = endDateObj.toISOString().split('T')[0];
+
     const startISO = `${dateStr}T${newEvent.startTime}:00+09:00`;
-    const endISO = `${dateStr}T${newEvent.endTime}:00+09:00`;
+    const endISO = `${endDateStr}T${newEvent.endTime}:00+09:00`;
 
     try {
       const response = await fetch(`${BACKEND_URL}/calendar/events/create`, {
@@ -255,6 +282,34 @@ const Home = ({
       }
     } catch (error) {
       console.error("삭제 에러:", error);
+    }
+  };
+
+  // ✨ 백엔드에 일정 수정 요청 보내기
+  const updateCalendarEvent = async (eventId, updatedData) => {
+    const token = localStorage.getItem('googleAccessToken');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/calendar/events/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: token,
+          eventId: eventId,
+          // updatedData에는 summary, location, description 등이 들어옵니다.
+          ...updatedData, 
+        }),
+      });
+
+      if (response.ok) {
+        alert("Event updated! ✨");
+        fetchCalendarEvents(); // 목록 새로고침
+      } else {
+        alert("Failed to update event.");
+      }
+    } catch (error) {
+      console.error("Update Error:", error);
     }
   };
 
@@ -372,10 +427,10 @@ const Home = ({
       const savedPrefs = localStorage.getItem('lumeeUserPreferences');
       return savedPrefs ? JSON.parse(savedPrefs) : {
         sensitivity: {
-          cold: 50,        // 0-100: 0=강철체력, 100=매우추위탐
-          heat: 50,        // 0-100: 0=사막가능, 100=녹아내림
-          fineDust: 50,    // 0-100: 0=신경안씀, 100=매우예민
-          rain: 50         // 0-100: 0=비좋아함, 100=매우싫음
+          cold: 50,         // 0-100: 0=강철체력, 100=매우추위탐
+          heat: 50,         // 0-100: 0=사막가능, 100=녹아내림
+          fineDust: 50,     // 0-100: 0=신경안씀, 100=매우예민
+          rain: 50          // 0-100: 0=비좋아함, 100=매우싫음
         },
         routine: {
           transport: 'walk',    // 'walk' | 'drive'
@@ -484,8 +539,6 @@ const Home = ({
     }
   }, [faqItems]);
 
-
-
   useEffect(() => {
     try {
       localStorage.setItem('lumeeUserPreferences', JSON.stringify(userPreferences));
@@ -517,12 +570,10 @@ const Home = ({
   // Google Calendar와 정적 schedules를 병합
   const allSchedules = [...calendarEvents, ...schedules];
 
-  const selectedSchedule =
+  const selectedSchedules =
     selectedDate &&
-    allSchedules.find((s) => {
-      // date 필드가 없으면 건너뛰기
+    allSchedules.filter((s) => {
       if (!s.date) return false;
-
       const [y, m, d] = s.date.split('-').map(Number);
       const scheduleDate = new Date(y, m - 1, d);
       return isSameDay(scheduleDate, selectedDate);
@@ -902,36 +953,14 @@ const Home = ({
                   Loading calendar events...
                 </div>
               ) : selectedDate ? (
-                selectedSchedule ? (
-                  <div className="plan-card-container" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <PlanCard schedule={selectedSchedule} />
-                    {/* ✅ 삭제 버튼 추가 */}
-                    <button 
-                      className="delete-event-btn" 
-                      onClick={() => deleteCalendarEvent(selectedSchedule.id)}
-                      style={{
-                        marginTop: '15px',
-                        color: '#ff4d4d',
-                        background: 'rgba(255, 77, 77, 0.1)',
-                        border: '1px solid rgba(255, 77, 77, 0.3)',
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Delete Event
-                    </button>
-                  </div>
-                ) : (
-
-                  <div className="plan-card-empty-wrapper">
+                <div className="plan-list-container">
+                  
+                  {/* 1. [상단 고정] 일정 추가 버튼 및 입력 폼 */}
+                  <div className="event-add-section">
                     {!showEventForm ? (
-                      <>
-                        <div className="plan-card-empty-text">No schedule for this day.</div>
-                        <button className="add-event-btn" onClick={() => setShowEventForm(true)}>
-                          + Add New Event
-                        </button>
-                      </>
+                      <button className="add-event-btn" onClick={() => setShowEventForm(true)}>
+                        + Add New Event
+                      </button>
                     ) : (
                       <div className="event-input-form">
                         <input 
@@ -953,9 +982,16 @@ const Home = ({
                           onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} 
                         />
                         <div className="time-picker-row">
-                          <input type="time" onChange={(e) => setNewEvent({...newEvent, startTime: e.target.value})} />
-                          <span style={{color: 'white'}}>~</span>
-                          <input type="time" onChange={(e) => setNewEvent({...newEvent, endTime: e.target.value})} />
+                          <input
+                            type="time"
+                            value={newEvent.startTime}
+                            onChange={(e)=>setNewEvent({...newEvent, startTime:e.target.value})}
+                          />
+                          <input
+                            type="time"
+                            value={newEvent.endTime}
+                            onChange={(e)=>setNewEvent({...newEvent, endTime:e.target.value})}
+                          />
                         </div>
                         <div className="form-action-btns">
                           <button onClick={addCalendarEvent} className="save-btn">Save</button>
@@ -964,7 +1000,25 @@ const Home = ({
                       </div>
                     )}
                   </div>
-                )
+
+                  {/* 2. [하단 스크롤] 등록된 일정 리스트 */}
+                  <div className="scrollable-plan-list">
+                    {selectedSchedules && selectedSchedules.length > 0 ? (
+                      selectedSchedules.map((schedule) => (
+                        <div key={schedule.id || schedule.event_id} className="plan-item-group">
+                          {/* onDelete 프롭스로 삭제 함수 전달 */}
+                          <PlanCard 
+                            schedule={schedule} 
+                            onDelete={() => deleteCalendarEvent(schedule.id || schedule.event_id)}
+                            onUpdate={updateCalendarEvent}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      !showEventForm && <div className="plan-card-empty-text">No schedule for this day.</div>
+                    )}
+                  </div>
+                </div>
               ) : null}
             </div>
           </div>

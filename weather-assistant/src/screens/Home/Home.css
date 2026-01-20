@@ -1887,16 +1887,47 @@
 ========================= */
 
 /* 일정 카드가 들어갈 영역 */
-.calendar-plan-wrapper {
-  position: absolute;
-  top: 340px;
-  /* "Today / Choose the day" 아래 */
-  left: 0;
+
+.plan-card {
+  position: relative; /* 버튼의 기준점 */
   width: 100%;
-  padding: 0 24px 40px;
-  box-sizing: border-box;
+  max-width: 460px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px 18px 22px;
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.18);
+}
+
+/* 🔴 X 버튼 스타일 */
+.plan-card-delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  
+  /* 버튼 모양 */
   display: flex;
+  align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.05); /* 평소엔 아주 연하게 */
+  border: none;
+  border-radius: 50%;
+  
+  /* X 텍스트 스타일 */
+  font-size: 20px;
+  color: #999;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.plan-card-delete-btn:hover {
+  background: rgba(255, 77, 77, 0.1); /* 호버 시 붉은색 계열 */
+  color: #ff4d4d;
+  transform: rotate(90deg); /* 살짝 회전 애니메이션 */
 }
 
 /* 카드 전체 */
@@ -2109,24 +2140,6 @@
   padding: 4px 0;
 }
 
-.time-picker-row input[type="time"] {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 8px;
-  color: #FFFFFF;
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  outline: none;
-  cursor: pointer;
-}
-
-/* 시간 입력창 내 시계 아이콘 색상 변경 (브라우저 지원용) */
-.time-picker-row input::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-}
-
 /* 하단 버튼 영역 */
 .form-action-btns {
   display: flex;
@@ -2174,4 +2187,182 @@
 
 .cancel-btn:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* =========================
+    📅 일정 리스트 및 레이아웃 관련
+========================= */
+
+/* 캘린더 하단 계획 영역 전체 */
+.calendar-plan-wrapper {
+  position: absolute;
+  top: 340px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 450px); /* 화면 높이에 맞춰 영역 확보 */
+  padding: 0 24px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.plan-list-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 상단 추가 섹션 (고정) */
+.event-add-section {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+  z-index: 5;
+}
+
+/* 시간 입력창 사이 구분선 */
+.time-separator {
+  color: white;
+  margin: 0 5px;
+}
+
+/* 하단 일정 리스트 (스크롤 가능) */
+.scrollable-plan-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 100px; /* 푸터 입력창에 가려지지 않게 여백 */
+  
+  /* 스크롤바 숨기기 */
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+
+.scrollable-plan-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* 개별 일정 카드 묶음 */
+.plan-item-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 기존 event-input-form 내부에 있던 max-width 제거 (컨테이너에 맞춤) */
+.event-input-form {
+  max-width: 100% !important; 
+  width: 100%;
+}
+
+/* 편집 모드 입력창들 */
+.plan-card.editing {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+}
+
+.edit-input, .edit-textarea {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+.edit-input.title { font-weight: 600; font-size: 1.1rem; }
+.edit-textarea { height: 100px; resize: none; }
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-save-btn {
+  flex: 1.5;
+  background: linear-gradient(135deg, #97F5FD 0%, #EEB4F3 100%);
+  border: none; padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;
+}
+
+.edit-cancel-btn {
+  flex: 1;
+  background: #eee; border: none; padding: 10px; border-radius: 12px; cursor: pointer;
+}
+
+/* 편집 모드 시간 설정 레이아웃 */
+.edit-time-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.edit-time-row input[type="time"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f1f1f1;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* 편집 모드일 때 전체적인 색감 조정 */
+.plan-card.editing {
+  background: #ffffff;
+  border: 2px solid #97F5FD;
+}
+
+.plan-card:active {
+  transform: scale(0.98); /* 누를 때 아주 살짝 작아짐 */
+  background-color: rgba(255, 255, 255, 0.95);
+  transition: transform 0.1s;
+}
+
+/* 시간 선택 드롭다운 스타일 */
+.time-select {
+  flex: 1;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.3); /* 배경을 어둡게 하여 대비 제공 */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #FFFFFF;
+  padding: 0 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  appearance: none; /* 브라우저 기본 화살표 숨기기 (선택사항) */
+}
+
+.time-select:focus {
+  border-color: #97F5FD;
+  box-shadow: 0 0 8px rgba(151, 245, 253, 0.3);
+}
+
+/* 드롭다운 옵션 내부 색상 (브라우저마다 다를 수 있음) */
+.time-select option {
+  background: #091837; 
+  color: #FFFFFF;
+}
+
+.time-separator {
+  color: white;
+  font-weight: bold;
+  margin: 0 5px;
+}
+
+/* ✅ Home.js 일정 추가 폼 시간 input도 PlanCard 편집이랑 동일하게 */
+.time-picker-row input[type="time"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f1f1f1;
+  font-family: 'Poppins', sans-serif;
 }
