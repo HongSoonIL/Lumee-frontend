@@ -26,7 +26,7 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Google Calendar API scope 추가
-googleProvider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
 
 // 🔒 로그인 시 항상 계정 선택 화면 표시 (자동 로그인 방지)
 googleProvider.setCustomParameters({
