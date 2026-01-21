@@ -3,7 +3,6 @@ import './App.css';
 import Home from './screens/Home/Home';
 import Chat from './screens/Chat/Chat';
 import VoiceInput from './screens/VoiceInput/VoiceInput';
-import KnockDetector from './screens/VoiceInput/KnockDetector';
 // 1. 경로를 'screens' (복수형) 및 'camera' (소문자)로 수정합니다.
 import CameraScreen from './screens/camera/CameraScreen';
 
@@ -207,12 +206,7 @@ function App() {
     setView('listening');
   };
 
-  // KnockDetector가 호출할 onKnock 함수를 정의합니다.
-  // 이 함수가 바로 음성인식을 켜는 역할을 합니다.
-  const onKnock = () => {
-    console.log('App.js: 노크 신호를 받아 음성인식을 시작합니다.');
-    handleVoiceInput();
-  };
+
 
   // 카메라 화면으로 이동하는 함수
   const handleCameraClick = () => {
@@ -265,7 +259,6 @@ function App() {
 
   return (
     <div className={`app ${view}`}>
-      <KnockDetector onKnock={onKnock} />
 
       {view === 'home' && (
         <Home
