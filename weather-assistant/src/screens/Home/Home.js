@@ -278,7 +278,7 @@ const Home = ({
         alert("일정이 삭제되었습니다.");
         fetchCalendarEvents(); // 목록 새로고침
         // setSelectedDate(null); // 선택 초기화
-        
+
       }
     } catch (error) {
       console.error("삭제 에러:", error);
@@ -298,7 +298,7 @@ const Home = ({
           accessToken: token,
           eventId: eventId,
           // updatedData에는 summary, location, description 등이 들어옵니다.
-          ...updatedData, 
+          ...updatedData,
         }),
       });
 
@@ -954,7 +954,7 @@ const Home = ({
                 </div>
               ) : selectedDate ? (
                 <div className="plan-list-container">
-                  
+
                   {/* 1. [상단 고정] 일정 추가 버튼 및 입력 폼 */}
                   <div className="event-add-section">
                     {!showEventForm ? (
@@ -963,34 +963,34 @@ const Home = ({
                       </button>
                     ) : (
                       <div className="event-input-form">
-                        <input 
-                          type="text" placeholder="Title (Required)" 
+                        <input
+                          type="text" placeholder="Title (Required)"
                           className="event-form-input"
                           value={newEvent.summary}
-                          onChange={(e) => setNewEvent({...newEvent, summary: e.target.value})} 
+                          onChange={(e) => setNewEvent({ ...newEvent, summary: e.target.value })}
                         />
-                        <input 
-                          type="text" placeholder="Location" 
+                        <input
+                          type="text" placeholder="Location"
                           className="event-form-input"
                           value={newEvent.location}
-                          onChange={(e) => setNewEvent({...newEvent, location: e.target.value})} 
+                          onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                         />
-                        <textarea 
-                          placeholder="Description" 
+                        <textarea
+                          placeholder="Description"
                           className="event-form-textarea"
                           value={newEvent.description}
-                          onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} 
+                          onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                         />
                         <div className="time-picker-row">
                           <input
                             type="time"
                             value={newEvent.startTime}
-                            onChange={(e)=>setNewEvent({...newEvent, startTime:e.target.value})}
+                            onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
                           />
                           <input
                             type="time"
                             value={newEvent.endTime}
-                            onChange={(e)=>setNewEvent({...newEvent, endTime:e.target.value})}
+                            onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
                           />
                         </div>
                         <div className="form-action-btns">
@@ -1007,8 +1007,8 @@ const Home = ({
                       selectedSchedules.map((schedule) => (
                         <div key={schedule.id || schedule.event_id} className="plan-item-group">
                           {/* onDelete 프롭스로 삭제 함수 전달 */}
-                          <PlanCard 
-                            schedule={schedule} 
+                          <PlanCard
+                            schedule={schedule}
                             onDelete={() => deleteCalendarEvent(schedule.id || schedule.event_id)}
                             onUpdate={updateCalendarEvent}
                           />
