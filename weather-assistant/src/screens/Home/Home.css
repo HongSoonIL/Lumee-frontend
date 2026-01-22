@@ -1080,6 +1080,7 @@
   transform: translateY(-1px);
 }
 
+
 .FAQ-cancel-btn:active {
   transform: translateY(0);
 }
@@ -1379,8 +1380,8 @@
 
 /* 모바일 반응형 디자인 */
 
-/* iPhone SE 크기 및 작은 모바일 대응 */
-@media screen and (max-width: 414px) and (max-height: 736px) {
+/* 작은 모바일 화면 대응 (너비 414px 이하) */
+@media screen and (max-width: 414px) {
 
   /* 헤더 위치 조정 */
   .weather-header {
@@ -1474,8 +1475,8 @@
   }
 }
 
-/* 삼성 갤럭시 S8 및 비슷한 크기 대응 (360x740px) */
-@media screen and (max-width: 360px) and (min-height: 740px) {
+/* 매우 작은 모바일 화면 대응 (너비 360px 이하) */
+@media screen and (max-width: 360px) {
 
   /* 헤더 위치 조정 */
   .weather-header {
@@ -1709,6 +1710,8 @@
   position: relative;
   width: 100%;
   height: 100%;
+  min-height: 100vh;
+  /* 작은 화면에서도 최소 높이 보장 */
   overflow: hidden;
   /* 다른 페이지는 가려두기 */
 }
@@ -1889,7 +1892,8 @@
 /* 일정 카드가 들어갈 영역 */
 
 .plan-card {
-  position: relative; /* 버튼의 기준점 */
+  position: relative;
+  /* 버튼의 기준점 */
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
@@ -1906,15 +1910,16 @@
   right: 12px;
   width: 28px;
   height: 28px;
-  
+
   /* 버튼 모양 */
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.05); /* 평소엔 아주 연하게 */
+  background: rgba(0, 0, 0, 0.05);
+  /* 평소엔 아주 연하게 */
   border: none;
   border-radius: 50%;
-  
+
   /* X 텍스트 스타일 */
   font-size: 20px;
   color: #999;
@@ -1925,9 +1930,11 @@
 }
 
 .plan-card-delete-btn:hover {
-  background: rgba(255, 77, 77, 0.1); /* 호버 시 붉은색 계열 */
+  background: rgba(255, 77, 77, 0.1);
+  /* 호버 시 붉은색 계열 */
   color: #ff4d4d;
-  transform: rotate(90deg); /* 살짝 회전 애니메이션 */
+  transform: rotate(90deg);
+  /* 살짝 회전 애니메이션 */
 }
 
 /* 카드 전체 */
@@ -2089,10 +2096,11 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  max-width: 330px; /* 사이드 메뉴 너비와 통일감 */
+  max-width: 330px;
+  /* 사이드 메뉴 너비와 통일감 */
   margin: 0 auto;
   padding: 20px;
-  
+
   /* Lumee 스타일: 유리 효과 */
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
@@ -2100,12 +2108,12 @@
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  
+
   animation: fadeIn 0.3s ease-out;
 }
 
 /* 입력창 공통 스타일 (제목, 장소, 설명) */
-.event-form-input, 
+.event-form-input,
 .event-form-textarea {
   width: 100%;
   background: rgba(0, 0, 0, 0.25);
@@ -2119,7 +2127,7 @@
   transition: all 0.2s ease;
 }
 
-.event-form-input:focus, 
+.event-form-input:focus,
 .event-form-textarea:focus {
   border-color: #97F5FD;
   background: rgba(0, 0, 0, 0.35);
@@ -2199,7 +2207,8 @@
   top: 340px;
   left: 0;
   width: 100%;
-  height: calc(100vh - 450px); /* 화면 높이에 맞춰 영역 확보 */
+  height: calc(100vh - 450px);
+  /* 화면 높이에 맞춰 영역 확보 */
   padding: 0 24px;
   box-sizing: border-box;
   display: flex;
@@ -2234,11 +2243,12 @@
 .scrollable-plan-list {
   flex-grow: 1;
   overflow-y: auto;
-  padding-bottom: 100px; /* 푸터 입력창에 가려지지 않게 여백 */
-  
+  padding-bottom: 100px;
+  /* 푸터 입력창에 가려지지 않게 여백 */
+
   /* 스크롤바 숨기기 */
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .scrollable-plan-list::-webkit-scrollbar {
@@ -2256,7 +2266,7 @@
 
 /* 기존 event-input-form 내부에 있던 max-width 제거 (컨테이너에 맞춤) */
 .event-input-form {
-  max-width: 100% !important; 
+  max-width: 100% !important;
   width: 100%;
 }
 
@@ -2266,7 +2276,8 @@
   border: 1px solid #ddd;
 }
 
-.edit-input, .edit-textarea {
+.edit-input,
+.edit-textarea {
   width: 100%;
   margin-bottom: 8px;
   padding: 10px;
@@ -2276,8 +2287,15 @@
   box-sizing: border-box;
 }
 
-.edit-input.title { font-weight: 600; font-size: 1.1rem; }
-.edit-textarea { height: 100px; resize: none; }
+.edit-input.title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.edit-textarea {
+  height: 100px;
+  resize: none;
+}
 
 .edit-actions {
   display: flex;
@@ -2287,12 +2305,20 @@
 .edit-save-btn {
   flex: 1.5;
   background: linear-gradient(135deg, #97F5FD 0%, #EEB4F3 100%);
-  border: none; padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;
+  border: none;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .edit-cancel-btn {
   flex: 1;
-  background: #eee; border: none; padding: 10px; border-radius: 12px; cursor: pointer;
+  background: #eee;
+  border: none;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
 /* 편집 모드 시간 설정 레이아웃 */
@@ -2319,7 +2345,8 @@
 }
 
 .plan-card:active {
-  transform: scale(0.98); /* 누를 때 아주 살짝 작아짐 */
+  transform: scale(0.98);
+  /* 누를 때 아주 살짝 작아짐 */
   background-color: rgba(255, 255, 255, 0.95);
   transition: transform 0.1s;
 }
@@ -2328,7 +2355,8 @@
 .time-select {
   flex: 1;
   height: 40px;
-  background: rgba(0, 0, 0, 0.3); /* 배경을 어둡게 하여 대비 제공 */
+  background: rgba(0, 0, 0, 0.3);
+  /* 배경을 어둡게 하여 대비 제공 */
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   color: #FFFFFF;
@@ -2337,7 +2365,8 @@
   font-size: 14px;
   cursor: pointer;
   outline: none;
-  appearance: none; /* 브라우저 기본 화살표 숨기기 (선택사항) */
+  appearance: none;
+  /* 브라우저 기본 화살표 숨기기 (선택사항) */
 }
 
 .time-select:focus {
@@ -2347,7 +2376,7 @@
 
 /* 드롭다운 옵션 내부 색상 (브라우저마다 다를 수 있음) */
 .time-select option {
-  background: #091837; 
+  background: #091837;
   color: #FFFFFF;
 }
 

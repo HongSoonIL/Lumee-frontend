@@ -9,13 +9,12 @@ body {
   font-family: 'Poppins', 'Noto Sans KR', sans-serif;
   color: #ffffff;
   /* 전체 body 배경을 그라데이션으로 */
-  background: linear-gradient(
-    to bottom,
-    #091837 0%,
-    #091837 50%,
-    #1F366F 100%
-  );
-  background-attachment: fixed; /* body에서만 fixed 사용 */
+  background: linear-gradient(to bottom,
+      #091837 0%,
+      #091837 50%,
+      #1F366F 100%);
+  background-attachment: fixed;
+  /* body에서만 fixed 사용 */
   overflow-x: hidden;
 }
 
@@ -26,7 +25,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  
+
   /* 배경 투명 - body 배경 그대로 보이게 */
   background: transparent;
 }
@@ -36,16 +35,16 @@ body {
   width: 100vw;
   min-height: 100vh;
   max-width: 430px;
-  
+
   /* 안전 영역 처리 */
-  padding-top: env(safe-area-inset-top, 59px); 
+  padding-top: env(safe-area-inset-top, 59px);
   padding-bottom: env(safe-area-inset-bottom, 34px);
   padding-left: env(safe-area-inset-left, 20px);
   padding-right: env(safe-area-inset-right, 20px);
 
   /* 배경 투명 - body 배경 그대로 보이게 */
   background: transparent;
-  
+
   /* 레이아웃 */
   display: flex;
   flex-direction: column;
@@ -60,13 +59,13 @@ body {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     background-attachment: scroll;
   }
-  
+
   .app {
     background: transparent;
     padding: 40px;
     align-items: center;
   }
-  
+
   /* 휴대폰 모양 만들기 */
   .app-container {
     width: 430px;
@@ -75,17 +74,15 @@ body {
     border-radius: 40px;
     border: 8px solid #48484a;
     overflow: hidden;
-    
+
     /* 데스크톱에서만 앱 컨테이너에 그라데이션 적용 */
-    background: linear-gradient(
-      180deg,
-      #091837 0%,
-      #091837 50%,
-      #1F366F 100%
-    );
-  
+    background: linear-gradient(180deg,
+        #091837 0%,
+        #091837 50%,
+        #1F366F 100%);
+
     /* 프리미엄 메탈릭 효과 */
-    box-shadow: 
+    box-shadow:
       0 25px 80px rgba(0, 0, 0, 0.7),
       inset 0 1px 0 rgba(255, 255, 255, 0.25),
       inset 0 -1px 0 rgba(0, 0, 0, 0.15);
