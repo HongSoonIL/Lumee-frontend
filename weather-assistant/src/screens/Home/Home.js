@@ -4,10 +4,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Home.css';
 import { WeatherDescriptionWithIcon } from './weatherIconUtils';
 import PlanCard from './PlanCard';
-import { schedules } from './schedules';
 
 // Firebase 로그인 함수 import
 import { signInWithGoogle, logout } from '../../firebase';
+
+// Google Calendar 일정만 표시합니다.
+// 일정이 없는 경우 "No schedule for this day."가 표시됩니다.
+const schedules = [];
 
 // ===== 날짜/캘린더 유틸 =====
 const weekdayShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
