@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 import './Camera_Before.css';
 import './Camera_Cautions.css';
 import './Camera.css';
@@ -27,6 +28,7 @@ const CameraScreen = ({ onBack, uid, user }) => {
 
   // 브라우저 카메라를 위한 video ref
   const videoRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // 사용자 이름 설정 (실제 Google 계정 정보 사용, 없으면 'user')
   const userName = user?.displayName || 'user';
@@ -105,20 +107,11 @@ const CameraScreen = ({ onBack, uid, user }) => {
     return canvas.toDataURL('image/jpeg', 0.9);
   };
 
-  // 촬영 처리 함수 (브라우저 카메라 사용)
-  const handleCapture = async () => {
-    setLoading(true);
-    setStep('scanning');
-    setError(null);
-
+  // 공통 이미지 분석 처리 함수
+  const processImageAnalysis = async (imageDataUrl) => {
     try {
-      console.log('📸 브라우저에서 사진 촬영 시작...');
-
-      // 브라우저에서 직접 사진 캡처
-      const imageDataUrl = capturePhoto();
-
       // Base64 헤더 제거
-      const base64Image = imageDataUrl.replace(/^data:image\/jpeg;base64,/, '');
+      const base64Image = imageDataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
       console.log('📤 백엔드로 이미지 전송 중...');
 
       let latitude = null;
@@ -128,9 +121,9 @@ const CameraScreen = ({ onBack, uid, user }) => {
         console.log('위치 정보 요청 중...');
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 10000,  // 10초로 증가
-            maximumAge: 60000,  // 1분간 캐시된 위치 사용 가능
-            enableHighAccuracy: false  // WiFi 기반 위치 사용 (더 빠름)
+            timeout: 10000,
+            maximumAge: 60000,
+            enableHighAccuracy: false
           });
         });
         latitude = position.coords.latitude;
@@ -138,8 +131,7 @@ const CameraScreen = ({ onBack, uid, user }) => {
         console.log(`✅ 위치 정보: ${latitude}, ${longitude}`);
       } catch (geoError) {
         console.warn('❌ 위치 정보를 가져올 수 없습니다.:', geoError.message);
-      }
-
+      };
 
       // 백엔드에 이미지 분석 요청
       const response = await fetch(`${BACKEND_URL}/camera/analyze`, {
@@ -152,7 +144,7 @@ const CameraScreen = ({ onBack, uid, user }) => {
           image: base64Image,
           latitude,
           longitude,
-          language: detectLanguage()  // 👈 언어 정보 추가
+          language: detectLanguage()
         })
       });
 
@@ -174,13 +166,64 @@ const CameraScreen = ({ onBack, uid, user }) => {
       }, 3000);
 
     } catch (err) {
-      console.error('❌ 촬영 오류:', err);
+      console.error('❌ 분석 오류:', err);
       setError(err.message);
       setStep('before');
       setLoading(false);
 
       // 3초 후 에러 메시지 자동 제거
       setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // 촬영 처리 함수 (브라우저 카메라 사용)
+  const handleCapture = async () => {
+    setLoading(true);
+    setStep('scanning');
+    setError(null);
+
+    try {
+      console.log('📸 브라우저에서 사진 촬영 시작...');
+      const imageDataUrl = capturePhoto();
+      await processImageAnalysis(imageDataUrl);
+    } catch (err) {
+      console.error('❌ 촬영 오류:', err);
+      setError(err.message);
+      setStep('before');
+      setLoading(false);
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // 갤러리 파일 선택 핸들러
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    setStep('scanning');
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const imageDataUrl = reader.result;
+      await processImageAnalysis(imageDataUrl);
+    };
+    reader.onerror = () => {
+      setError('파일을 읽는데 실패했습니다.');
+      setStep('before');
+      setLoading(false);
+    };
+    reader.readAsDataURL(file);
+
+    // 같은 파일 다시 선택 가능하게 초기화
+    e.target.value = '';
+  };
+
+  // 갤러리 버튼 클릭
+  const handleGalleryClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -317,6 +360,15 @@ const CameraScreen = ({ onBack, uid, user }) => {
       {/* 오버레이 (가이드 라인 등) */}
       <div className="overlay-rectangle" style={{ zIndex: 2 }}></div>
 
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+
       {/* 뒤로가기 버튼 */}
       <div className="header-frame" style={{ zIndex: 10 }}>
         <div className="back-arrow" onClick={() => setStep('cautions')}>
@@ -349,20 +401,58 @@ const CameraScreen = ({ onBack, uid, user }) => {
     */}
 
       {/* 촬영 버튼 */}
-      <div
-        className="camera-button"
-        onClick={handleCapture}
-        style={{
-          cursor: loading ? 'not-allowed' : 'pointer',
-          zIndex: 10
-        }}
-      >
-        <img
-          src={`${process.env.PUBLIC_URL}/assets/icons/camerabutton.svg`}
-          alt="Camera Button"
-          className="camera-button-icon"
-          style={{ opacity: loading ? 0.5 : 1 }}
-        />
+      <div style={{
+        position: 'absolute',
+        bottom: '100px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '40px',
+        zIndex: 10
+      }}>
+        {/* 갤러리 버튼 */}
+        <div
+          onClick={handleGalleryClick}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            border: '1px solid rgba(255,255,255,0.3)'
+          }}
+        >
+          <ImageIcon size={24} color="white" />
+        </div>
+
+        {/* 촬영 버튼 */}
+        <div
+          className="camera-button"
+          onClick={handleCapture}
+          style={{
+            cursor: loading ? 'not-allowed' : 'pointer',
+            position: 'relative', // 기존 위치 속성 제거/조정
+            bottom: 'auto',
+            left: 'auto',
+            transform: 'none',
+            margin: 0
+          }}
+        >
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/icons/camerabutton.svg`}
+            alt="Camera Button"
+            className="camera-button-icon"
+            style={{ opacity: loading ? 0.5 : 1 }}
+          />
+        </div>
+
+        {/* 균형을 위한 빈 공간 (선택 사항) */}
+        <div style={{ width: '50px' }}></div>
       </div>
 
       <ErrorToast />
