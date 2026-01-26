@@ -5,6 +5,7 @@ import Chat from './screens/Chat/Chat';
 import VoiceInput from './screens/VoiceInput/VoiceInput';
 // 1. 경로를 'screens' (복수형) 및 'camera' (소문자)로 수정합니다.
 import CameraScreen from './screens/camera/CameraScreen';
+import Splash from './screens/Splash/Splash';
 
 // 로그인 Firebase 관련 import
 import { auth } from './firebase';
@@ -15,6 +16,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000'
 
 function App() {
 
+  const [showSplash, setShowSplash] = useState(true); // 스플래시 화면 표시 여부
   const [view, setView] = useState('home');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
@@ -229,6 +231,15 @@ function App() {
     }
   }, [messages]); // messages 배열이 변경될 때마다 실행
 
+  // 스플래시 화면 타이머 (2초 후 자동으로 숨김)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000); // 2초 후 스플래시 화면 숨김
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
@@ -259,6 +270,8 @@ function App() {
 
   return (
     <div className={`app ${view}`}>
+      {/* 스플래시 화면 */}
+      {showSplash && <Splash />}
 
       {view === 'home' && (
         <Home
