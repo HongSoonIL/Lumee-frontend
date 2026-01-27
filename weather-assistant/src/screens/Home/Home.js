@@ -252,7 +252,9 @@ const Home = ({
   const [userPreferences, setUserPreferences] = useState(() => {
     try {
       const savedPrefs = localStorage.getItem('lumeeUserPreferences');
-      return savedPrefs ? JSON.parse(savedPrefs) : {
+
+      // 기본값 정의
+      const defaultPrefs = {
         sensitivity: {
           cold: 50,         // 0-100: 0=강철체력, 100=매우추위탐
           heat: 50,         // 0-100: 0=사막가능, 100=녹아내림
@@ -263,13 +265,31 @@ const Home = ({
           transport: 'walk',    // 'walk' | 'drive'
           style: 'casual',      // 'formal' | 'casual'
           activeTime: 'morning' // 'morning' | 'night'
+        },
+        health: {
+          exerciseFrequency: 50,  // 0-100: 0=거의 안 함, 100=매일 운동
+          allergyInfo: '',        // 알레르기 정보 (텍스트)
+          healthInfo: ''          // 건강 정보 (텍스트)
         }
       };
+
+      if (savedPrefs) {
+        const parsed = JSON.parse(savedPrefs);
+        // 기존 데이터와 새로운 구조를 병합 (기존 데이터 우선)
+        return {
+          sensitivity: { ...defaultPrefs.sensitivity, ...parsed.sensitivity },
+          routine: { ...defaultPrefs.routine, ...parsed.routine },
+          health: { ...defaultPrefs.health, ...parsed.health } // health가 없으면 기본값 사용
+        };
+      }
+
+      return defaultPrefs;
     } catch (error) {
       console.error('사용자 선호도 로드 실패:', error);
       return {
         sensitivity: { cold: 50, heat: 50, fineDust: 50, rain: 50 },
-        routine: { transport: 'walk', style: 'casual', activeTime: 'morning' }
+        routine: { transport: 'walk', style: 'casual', activeTime: 'morning' },
+        health: { exerciseFrequency: 50, allergyInfo: '', healthInfo: '' }
       };
     }
   });
@@ -291,6 +311,28 @@ const Home = ({
       ...prev,
       routine: {
         ...prev.routine,
+        [key]: value
+      }
+    }));
+  };
+
+  // 건강 정보 슬라이더 변경 핸들러
+  const handleHealthSliderChange = (key, value) => {
+    setUserPreferences(prev => ({
+      ...prev,
+      health: {
+        ...prev.health,
+        [key]: parseInt(value)
+      }
+    }));
+  };
+
+  // 건강 정보 텍스트 입력 핸들러
+  const handleHealthTextChange = (key, value) => {
+    setUserPreferences(prev => ({
+      ...prev,
+      health: {
+        ...prev.health,
         [key]: value
       }
     }));
@@ -514,10 +556,63 @@ const Home = ({
                   </button>
                 </div>
               </div>
+
+              <h4 className="preferences-section-title" style={{ marginTop: '24px' }}>🏃 Activity & Health</h4>
+
+              {/* Exercise Frequency Slider */}
+              <div className="sensitivity-slider-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">💪</span>
+                  <span className="slider-label">운동 빈도</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={userPreferences.health.exerciseFrequency}
+                  onChange={(e) => handleHealthSliderChange('exerciseFrequency', e.target.value)}
+                  className="custom-range-slider"
+                />
+                <div className="slider-labels">
+                  <span>거의 안 함</span>
+                  <span>매일 운동</span>
+                </div>
+              </div>
+
+              {/* Allergy Info Text Input */}
+              <div className="health-text-input-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">🌸</span>
+                  <span className="slider-label">알레르기 정보</span>
+                </div>
+                <textarea
+                  className="health-text-input"
+                  placeholder="꽃가루, 특정 음식 등 알레르기 정보를 입력하세요..."
+                  value={userPreferences.health.allergyInfo}
+                  onChange={(e) => handleHealthTextChange('allergyInfo', e.target.value)}
+                  rows="3"
+                />
+              </div>
+
+              {/* Health Info Text Input */}
+              <div className="health-text-input-wrapper">
+                <div className="slider-header">
+                  <span className="slider-emoji">💊</span>
+                  <span className="slider-label">건강 정보</span>
+                </div>
+                <textarea
+                  className="health-text-input"
+                  placeholder="천식, 편두통 등 날씨에 영향받는 건강 상태를 입력하세요..."
+                  value={userPreferences.health.healthInfo}
+                  onChange={(e) => handleHealthTextChange('healthInfo', e.target.value)}
+                  rows="3"
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* 헤더 */}
       <header className="weather-header">

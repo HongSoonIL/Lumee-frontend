@@ -370,6 +370,56 @@
   display: none;
 }
 
+/* ===== Health Text Input ===== */
+
+.health-text-input-wrapper {
+  margin-bottom: 20px;
+}
+
+.health-text-input {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 12px;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+
+  outline: none;
+  resize: vertical;
+  transition: all 0.3s ease;
+
+  /* 텍스트 선택 가능하게 변경 */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.health-text-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
+.health-text-input:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.health-text-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #97F5FD;
+  box-shadow:
+    0 0 0 2px rgba(151, 245, 253, 0.2),
+    0 2px 8px rgba(151, 245, 253, 0.15);
+}
+
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   .side-menu {
@@ -405,7 +455,16 @@
     font-size: 12px;
     padding: 7px 10px;
   }
+
+  .health-text-input {
+    font-size: 12px;
+  }
+
+  .health-text-input::placeholder {
+    font-size: 11px;
+  }
 }
+
 
 /* 아주 작은 화면 (320px 이하) */
 @media (max-width: 320px) {
