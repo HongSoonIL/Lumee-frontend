@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './Chat.css';
 import WeatherLineChart from './WeatherLineChart';
 import DustLevelChart from './DustLevelChart';
+import PollenLevelChart from './PollenLevelChart';
 
 const Chat = ({
   messages,
@@ -12,6 +13,9 @@ const Chat = ({
   onBackToHome,
   onCameraClick
 }) => {
+  // 환경 변수에서 백엔드 URL 가져오기
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+
   //const chartRef = useRef(null); //경고메시지가 떠서 주석 처리하였습니다.
   const [chatTitle, setChatTitle] = useState(''); // 제목 상태 추가
 
@@ -22,28 +26,6 @@ const Chat = ({
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  // 영상 출력 참조 생성
-  const videoWindowRef = useRef(null);
-
-  // 🎬 날씨 영상 재생 함수 추가
-  const playWeatherVideo = (videoUrl) => {
-    const win = videoWindowRef.current;
-    
-    if (!win || win.closed) {
-      const screenWidth = window.screen.width;
-      const windowFeatures = `width=800,height=600,left=${screenWidth},top=0,menubar=no,toolbar=no,location=no,status=no`;
-      
-      videoWindowRef.current = window.open(
-        videoUrl, 
-        'hologramDisplay',  // ⭐ 이름을 hologramDisplay로 변경!
-        windowFeatures
-      );
-    } else {
-      videoWindowRef.current.location.href = videoUrl;
-      videoWindowRef.current.focus();
-    }
-  };
-
   useEffect(() => {
     // 첫 번째 사용자 메시지가 있고 아직 제목을 생성하지 않았을 때
     if (messages.length >= 1 && messages[0]?.type === 'user' && !titleGeneratedRef.current) {
@@ -51,7 +33,7 @@ const Chat = ({
 
       const generateTitle = async () => {
         try {
-          const response = await fetch('http://localhost:4000/generate-title', { //최종 배포시 http://localhost:4000 -> https://weather-assistant-backend1.onrender.com
+          const response = await fetch(`${BACKEND_URL}/generate-title`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userInput: messages[0].text })
@@ -110,27 +92,6 @@ const Chat = ({
       }, 100);
     }
   }, [messages]);
-
-  // 🎬 영상 URL이 포함된 메시지가 있으면 재생
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    
-    // 마지막 메시지에 videoUrl이 있으면 재생
-    if (lastMessage?.videoUrl) {
-      console.log('🎬 Found videoUrl in message:', lastMessage.videoUrl);
-      playWeatherVideo(lastMessage.videoUrl);
-    }
-  }, [messages]); // messages가 변경될 때마다 실행
-
-  // 컴포넌트 언마운트 시 영상 창 닫기
-  useEffect(() => {
-    return () => {
-      if (videoWindowRef.current && !videoWindowRef.current.closed) {
-        // videoWindowRef.current.close();
-        console.log('🎬 Closed weather video window on unmount');
-      }
-    };
-  }, []);
 
   // 뒤로가기 핸들러
   const handleBack = () => {
@@ -202,6 +163,15 @@ const Chat = ({
                     {/* 👇 미세먼지 시각화 그래프를 나중에 렌더링 */}
                     {m.dust && typeof m.dust.value === 'number' && (
                       <DustLevelChart value={m.dust.value} date={m.dust.date} />
+                    )}
+
+                    {/* 👇 꽃가루 시각화 그래프 렌더링 */}
+                    {m.pollen && typeof m.pollen.value === 'number' && (
+                      <PollenLevelChart
+                        value={m.pollen.value}
+                        category={m.pollen.category}
+                        date={m.pollen.date}
+                      />
                     )}
                   </div>
                 )}

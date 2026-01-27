@@ -1,78 +1,229 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 import './Camera_Before.css';
 import './Camera_Cautions.css';
 import './Camera.css';
 import './Camera_Done.css';
 
-const CameraScreen = ({ onBack, uid }) => {
+// 브라우저 언어 감지 함수
+const detectLanguage = () => {
+  const browserLang = navigator.language || navigator.userLanguage;
+  // "ko-KR" -> "ko", "en-US" -> "en"
+  const lang = browserLang.toLowerCase().startsWith('ko') ? 'ko' : 'en';
+  console.log(`🌐 감지된 언어: ${browserLang} -> ${lang}`);
+  return lang;
+};
+
+const CameraScreen = ({ onBack, uid, user }) => {
   // 환경 변수에서 URL 가져오기
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
-  const RASPI_URL = process.env.REACT_APP_RASPI_URL || 'http://192.168.50.135:5000';
-  
+
   // 상태 관리
   const [step, setStep] = useState('cautions'); // cautions -> before -> scanning -> done
   const [capturedImage, setCapturedImage] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [streamReady, setStreamReady] = useState(false);
 
-  const streamImgRef = useRef(null);
+  // 브라우저 카메라를 위한 video ref
+  const videoRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  // 사용자 프로필
-  const userProfiles = {
-    testUser1: { name: '김민서' },
-    testUser2: { name: '이민준' }
+  // 사용자 이름 설정 (실제 Google 계정 정보 사용, 없으면 'user')
+  const userName = user?.displayName || 'user';
+
+  // 브라우저 카메라 스트림 초기화 및 정리
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        console.log('📷 브라우저 카메라 시작 중...');
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user', // 전면 카메라
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setStreamReady(true);
+          console.log('✅ 카메라 스트림 연결됨');
+        }
+      } catch (err) {
+        console.error('❌ 카메라 접근 오류:', err);
+        if (err.name === 'NotAllowedError') {
+          setError('카메라 접근 권한이 필요합니다');
+        } else if (err.name === 'NotFoundError') {
+          setError('카메라를 찾을 수 없습니다');
+        } else {
+          setError('카메라 접근에 실패했습니다');
+        }
+        setStreamReady(false);
+      }
+    };
+
+    // 'before' 단계에서만 카메라 시작
+    if (step === 'before') {
+      startCamera();
+    }
+
+    // 클린업: 컴포넌트 언마운트 또는 단계 변경 시 스트림 정지
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const video = videoRef.current;
+      if (video?.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => {
+          track.stop();
+          console.log('🛑 카메라 트랙 정지됨');
+        });
+        video.srcObject = null;
+        setStreamReady(false);
+      }
+    };
+  }, [step]);
+
+  // Canvas를 사용하여 video 프레임 캡처
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !streamReady) {
+      throw new Error('카메라가 준비되지 않았습니다');
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d');
+
+    // 거울 모드 적용 (좌우 반전)
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+
+    // Base64 이미지로 변환 (JPEG, 90% 품질)
+    return canvas.toDataURL('image/jpeg', 0.9);
   };
-  const currentUser = userProfiles[uid] || userProfiles['testUser1'];
-  const userName = currentUser.name;
 
-  // 촬영 처리 함수
+  // 공통 이미지 분석 처리 함수
+  const processImageAnalysis = async (imageDataUrl) => {
+    try {
+      // Base64 헤더 제거
+      const base64Image = imageDataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+      console.log('📤 백엔드로 이미지 전송 중...');
+
+      let latitude = null;
+      let longitude = null;
+
+      try {
+        console.log('위치 정보 요청 중...');
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 10000,
+            maximumAge: 60000,
+            enableHighAccuracy: false
+          });
+        });
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        console.log(`✅ 위치 정보: ${latitude}, ${longitude}`);
+      } catch (geoError) {
+        console.warn('❌ 위치 정보를 가져올 수 없습니다.:', geoError.message);
+      };
+
+      // 백엔드에 이미지 분석 요청
+      const response = await fetch(`${BACKEND_URL}/camera/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          uid,
+          image: base64Image,
+          latitude,
+          longitude,
+          language: detectLanguage()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`분석 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ 분석 응답:', data);
+
+      // 캡처한 이미지와 분석 결과 저장
+      setCapturedImage(imageDataUrl);
+      setAnalysisResult(data.analysis);
+
+      // 3초 후 완료 화면으로
+      setTimeout(() => {
+        setStep('done');
+        setLoading(false);
+      }, 3000);
+
+    } catch (err) {
+      console.error('❌ 분석 오류:', err);
+      setError(err.message);
+      setStep('before');
+      setLoading(false);
+
+      // 3초 후 에러 메시지 자동 제거
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // 촬영 처리 함수 (브라우저 카메라 사용)
   const handleCapture = async () => {
     setLoading(true);
     setStep('scanning');
     setError(null);
 
     try {
-      console.log('📸 촬영 요청 시작...');
-      
-      // 백엔드를 통해 촬영 요청
-      const response = await fetch(`${BACKEND_URL}/camera/capture`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ uid })
-      });
-
-      if (!response.ok) {
-        throw new Error(`촬영 실패: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ 촬영 응답:', data);
-
-      if (data.success && data.image) {
-        // Base64 이미지 저장
-        setCapturedImage(`data:image/jpeg;base64,${data.image}`);
-        setAnalysisResult(data.analysis);
-        
-        // 3초 후 완료 화면으로
-        setTimeout(() => {
-          setStep('done');
-          setLoading(false);
-        }, 3000);
-      } else {
-        throw new Error(data.error || '촬영 실패');
-      }
-
+      console.log('📸 브라우저에서 사진 촬영 시작...');
+      const imageDataUrl = capturePhoto();
+      await processImageAnalysis(imageDataUrl);
     } catch (err) {
       console.error('❌ 촬영 오류:', err);
       setError(err.message);
       setStep('before');
       setLoading(false);
-      
-      // 3초 후 에러 메시지 자동 제거
       setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // 갤러리 파일 선택 핸들러
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    setStep('scanning');
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const imageDataUrl = reader.result;
+      await processImageAnalysis(imageDataUrl);
+    };
+    reader.onerror = () => {
+      setError('파일을 읽는데 실패했습니다.');
+      setStep('before');
+      setLoading(false);
+    };
+    reader.readAsDataURL(file);
+
+    // 같은 파일 다시 선택 가능하게 초기화
+    e.target.value = '';
+  };
+
+  // 갤러리 버튼 클릭
+  const handleGalleryClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -118,33 +269,27 @@ const CameraScreen = ({ onBack, uid }) => {
         </button>
 
         <div className="camera-sheet-title">
-          <span className="camera-sheet-title-highlight">스캔 전에</span>
+          <span className="camera-sheet-title-highlight">Before scanning</span>
           <br />
-          <span className="camera-sheet-title-highlight">이건 꼭 알아두세요!</span>
+          <span className="camera-sheet-title-highlight">Make sure you know this!</span>
         </div>
 
         <div className="camera-sheet-description">
-          정확하고 디테일한 복장 및 피부 스캔을 위해,
+          For accurate and detailed skin scanning,
           <br />
-          아래 지정된 선 안에서 카메라를 정면으로 바라봐 주세요.
+          please look straight to the camera.
         </div>
 
         <div className="camera-tip-card">
-          알레르기나 발진 부위가 있다면 해당
-          <br />
-          부위가 잘 보이도록 촬영해 주세요.
+          If you have allergies or rashes, please make sure the affected area is visible.
         </div>
 
         <div className="camera-tip-card">
-          오늘 챙긴 마스크, 모자 등 소지품이
-          <br />
-          스캔에 포함될 수 있도록 해주세요.
+          Accessories such as masks, hats, etc. should be included in the scan.
         </div>
 
         <div className="camera-tip-card">
-          정면에서 피부 톤과 컨디션이
-          <br />
-          잘 보이도록 스캔해 주세요.
+          Scan your skin tone and condition from the front.
         </div>
 
         <button
@@ -153,7 +298,7 @@ const CameraScreen = ({ onBack, uid }) => {
           onClick={() => setStep('before')}
           disabled={loading}
         >
-          {loading ? '연결 중...' : '다음으로'}
+          {loading ? 'Connecting...' : 'Next'}
         </button>
       </div>
     </div>
@@ -161,66 +306,80 @@ const CameraScreen = ({ onBack, uid }) => {
 
   // 2. 실시간 카메라 화면
   const renderBefore = () => (
-  <div className="app-container camera-before">
-    <div className="status-bar">
-      <div className="time-text"></div>
-    </div>
-
-    {/* 🔥 실시간 스트림 - 전체 화면으로 표시 */}
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#000',
-      overflow: 'hidden',
-      zIndex: 1
-    }}>
-      <img
-        ref={streamImgRef}
-        src={`${RASPI_URL}/video_feed?t=${Date.now()}`}
-        alt="Camera Stream"
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%) scaleX(-1)', // 중앙 정렬 + 거울 모드
-          minWidth: '100%',
-          minHeight: '100%',
-          width: 'auto',
-          height: 'auto',
-          maxWidth: 'none',
-          objectFit: 'cover'
-        }}
-        onError={(e) => {
-          console.error('스트림 로드 실패');
-          e.target.style.display = 'none';
-          setError('카메라 연결 확인 필요');
-        }}
-        onLoad={() => {
-          console.log('✅ 스트림 연결됨');
-          if (error === '카메라 연결 확인 필요') {
-            setError(null);
-          }
-        }}
-      />
-    </div>
-
-    {/* 오버레이 (가이드 라인 등) */}
-    <div className="overlay-rectangle" style={{ zIndex: 2 }}></div>
-
-    {/* 뒤로가기 버튼 */}
-    <div className="header-frame" style={{ zIndex: 10 }}>
-      <div className="back-arrow" onClick={() => setStep('cautions')}>
-        <img
-          src={`${process.env.PUBLIC_URL}/assets/icons/arrow-left.svg`}
-          alt="Back"
-        />
+    <div className="app-container camera-before">
+      <div className="status-bar">
+        <div className="time-text"></div>
       </div>
-    </div>
 
-    {/* 촬영 가이드 텍스트
+      {/* 🔥 브라우저 카메라 스트림 - 전체 화면으로 표시 */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
+        overflow: 'hidden',
+        zIndex: 1
+      }}>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%) scaleX(-1)', // 중앙 정렬 + 거울 모드
+            minWidth: '100%',
+            minHeight: '100%',
+            width: 'auto',
+            height: 'auto',
+            maxWidth: 'none',
+            objectFit: 'cover'
+          }}
+        />
+        {/* 카메라 로딩 중 표시 */}
+        {!streamReady && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'white',
+            fontSize: '16px',
+            textAlign: 'center',
+            zIndex: 2
+          }}>
+            📷 Camera Loading...
+          </div>
+        )}
+      </div>
+
+      {/* 오버레이 (가이드 라인 등) */}
+      <div className="overlay-rectangle" style={{ zIndex: 2 }}></div>
+
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+
+      {/* 뒤로가기 버튼 */}
+      <div className="header-frame" style={{ zIndex: 10 }}>
+        <div className="back-arrow" onClick={() => setStep('cautions')}>
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/icons/arrow-left.svg`}
+            alt="Back"
+          />
+        </div>
+      </div>
+
+      {/* 촬영 가이드 텍스트
     <div style={{
       position: 'absolute',
       bottom: '150px',
@@ -241,51 +400,80 @@ const CameraScreen = ({ onBack, uid }) => {
     </div>
     */}
 
-    {/* 촬영 버튼 */}
-    <div 
-      className="camera-button" 
-      onClick={handleCapture}
-      style={{ 
-        cursor: loading ? 'not-allowed' : 'pointer',
+      {/* 촬영 버튼 */}
+      <div style={{
+        position: 'absolute',
+        bottom: '100px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '40px',
         zIndex: 10
-      }}
-    >
-      <img
-        src={`${process.env.PUBLIC_URL}/assets/icons/camerabutton.svg`}
-        alt="Camera Button"
-        className="camera-button-icon"
-        style={{ opacity: loading ? 0.5 : 1 }}
-      />
-    </div>
+      }}>
+        {/* 갤러리 버튼 */}
+        <div
+          onClick={handleGalleryClick}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            border: '1px solid rgba(255,255,255,0.3)'
+          }}
+        >
+          <ImageIcon size={24} color="white" />
+        </div>
 
-    <ErrorToast />
+        {/* 촬영 버튼 */}
+        <div
+          className="camera-button"
+          onClick={handleCapture}
+          style={{
+            cursor: loading ? 'not-allowed' : 'pointer',
+            position: 'relative', // 기존 위치 속성 제거/조정
+            bottom: 'auto',
+            left: 'auto',
+            transform: 'none',
+            margin: 0
+          }}
+        >
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/icons/camerabutton.svg`}
+            alt="Camera Button"
+            className="camera-button-icon"
+            style={{ opacity: loading ? 0.5 : 1 }}
+          />
+        </div>
 
-    <div className="home-indicator-wrapper" style={{ zIndex: 10 }}>
-      <div className="home-indicator-bar"></div>
+        {/* 균형을 위한 빈 공간 (선택 사항) */}
+        <div style={{ width: '50px' }}></div>
+      </div>
+
+      <ErrorToast />
+
+      <div className="home-indicator-wrapper" style={{ zIndex: 10 }}>
+        <div className="home-indicator-bar"></div>
+      </div>
     </div>
-  </div>
-);
+  );
 
   // 3. 스캔 중 화면
   const renderScanning = () => (
     <div className="app-container camera">
+      {/* 스캔 중 배경 */}
       <div className="background-image" style={{
-        backgroundImage: 'none',
-        backgroundColor: '#000'
+        backgroundImage: capturedImage ? `url(${capturedImage})` : 'none',
+        backgroundColor: '#000',
+        filter: 'blur(10px)'
       }}>
-        <img
-          src={`${RASPI_URL}/video_feed`}
-          alt="Scanning"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            transform: 'scaleX(-1)',
-            filter: 'blur(5px)'
-          }}
-        />
       </div>
-      <div className="overlay-rectangle" style={{ opacity: 0.7 }}></div>
+      <div className="overlay-rectangle" style={{ opacity: 0.8 }}></div>
 
       <div className="status-bar">
         <div className="time"></div>
@@ -302,9 +490,9 @@ const CameraScreen = ({ onBack, uid }) => {
 
       <div className="scan-message">
         <span className="scan-username">{userName}</span>
-        <span> 님의 착장을</span>
+        <span>'s outfit</span>
         <br />
-        <span>스캔하고 있어요...</span>
+        <span>scanning...</span>
       </div>
 
       {/* 로딩 스피너 */}
@@ -349,9 +537,9 @@ const CameraScreen = ({ onBack, uid }) => {
   const renderDone = () => (
     <div className="app-container camera-done">
       {/* 촬영된 이미지를 배경으로 */}
-      <div 
-        className="background-image" 
-        style={{ 
+      <div
+        className="background-image"
+        style={{
           backgroundImage: capturedImage ? `url(${capturedImage})` : 'none',
           filter: 'blur(25px)',
           backgroundColor: '#000'
@@ -374,9 +562,9 @@ const CameraScreen = ({ onBack, uid }) => {
 
       <div className="scan-complete">
         <span className="scan-complete-username">{userName}</span>
-        <span> 님의 착장</span>
+        <span>`s outfit</span>
         <br />
-        <span>스캔을 완료했어요</span>
+        <span>scan complete</span>
       </div>
 
       {/* 촬영된 사진 프리뷰 */}
