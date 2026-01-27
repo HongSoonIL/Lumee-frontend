@@ -1698,43 +1698,19 @@
     font-size: 8px !important;
     height: 18px !important;
   }
-
 }
 
 /* =======================================
-   🔥 홈 / 캘린더 슬라이더 & 캘린더 UI
+   🔥 홈 화면 (슬라이더 제거 후 단일 화면)
 ======================================= */
-
-/* 슬라이더 바깥 래퍼 */
-.home-slider {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 100vh;
-  /* 작은 화면에서도 최소 높이 보장 */
-  overflow: hidden;
-  /* 다른 페이지는 가려두기 */
-}
-
-/* 두 페이지(홈, 캘린더)를 가로로 나란히 배치 */
-.home-slider-inner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  width: 200%;
-  /* 페이지 2개 → 200% */
-  height: 100%;
-  transition: transform 0.35s ease-out;
-}
 
 /* 각 페이지 공통 */
 .home-page {
   position: relative;
-  flex: 0 0 50%;
-  /* 200% 중 절반 = 기기 한 화면 */
-  width: 50%;
+  width: 100%;
+  /* 전체 화면 사용 */
   height: 100%;
+  min-height: 100vh;
 }
 
 
