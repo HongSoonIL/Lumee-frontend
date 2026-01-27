@@ -3,18 +3,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Home.css';
 import { WeatherDescriptionWithIcon } from './weatherIconUtils';
-import PlanCard from './PlanCard';
 
 // Firebase 로그인 함수 import
 import { signInWithGoogle, logout } from '../../firebase';
 
-// Google Calendar 일정만 표시합니다.
-// 일정이 없는 경우 "No schedule for this day."가 표시됩니다.
-const schedules = [];
-
-// ===== 날짜/캘린더 유틸 =====
-const weekdayShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-
+// ===== 날짜 유틸 =====
 function formatDate(date) {
   const options = { month: 'short', day: 'numeric', weekday: 'long' };
   const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(date);
@@ -24,35 +17,6 @@ function formatDate(date) {
   const weekday = parts.find((p) => p.type === 'weekday').value;
 
   return `${month} ${day}, ${weekday}`;
-}
-
-function formatMonthYear(date) {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'long',
-    year: 'numeric',
-  }).format(date); // ex) December 2025
-}
-
-// ✨ 오늘부터 7일간의 날짜를 보여주는 함수
-function getWeekDates(baseDate) {
-  const d = new Date(baseDate);
-  const arr = [];
-
-  for (let i = 0; i < 7; i++) {
-    const nextDate = new Date(d);
-    nextDate.setDate(d.getDate() + i);
-    arr.push(nextDate);
-  }
-  return arr;
-}
-
-function isSameDay(a, b) {
-  if (!a || !b) return false;
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
 }
 
 // fetchCalendarEvents는 Home 컴포넌트 내부로 이동됨
@@ -89,16 +53,8 @@ const Home = ({
   };
 
   // ===== Google Calendar 일정 State =====
+  // 캘린더 데이터는 백그라운드에서 가져와 백엔드에 전달합니다.
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
-
-  const [showEventForm, setShowEventForm] = useState(false); // 입력창 열림/닫힘 상태
-  const [newEvent, setNewEvent] = useState({
-    summary: '',
-    location: '',
-    description: '',
-    startTime: '', // 빈 값으로 시작 (필수 선택 유도)
-    endTime: ''
-  });
 
   // ✨ 백엔드로부터 Google Calendar 일정 가져오기
   const fetchCalendarEvents = useCallback(async () => {
@@ -189,133 +145,6 @@ const Home = ({
     }
   }, [BACKEND_URL, setCalendarEvents]);
 
-  // ✨ 백엔드에 일정 추가 요청 보내기
-  const addCalendarEvent = async () => {
-    const token = localStorage.getItem('googleAccessToken');
-    if (!token) {
-      alert("Please sign in first.");
-      return;
-    }
-
-    // 유효성 검사 (시간을 선택 안 했으면 중단)
-    if (!newEvent.summary || !newEvent.startTime || !newEvent.endTime) {
-      alert("Please enter a title and select both start and end times! ⏰");
-      return;
-    }
-
-    // ---- [추가] 시간 파싱 & duration 계산 (자정 넘어가는 일정 포함) ----
-    const [sh, sm] = newEvent.startTime.split(':').map(Number);
-    const [eh, em] = newEvent.endTime.split(':').map(Number);
-
-    const startMinutes = sh * 60 + sm;
-    const endMinutes = eh * 60 + em;
-
-    // 자정 넘어가는 경우: 다음날로 가정해서 duration 계산
-    let durationMinutes = endMinutes - startMinutes;
-    if (durationMinutes <= 0) {
-      durationMinutes += 24 * 60;
-    }
-
-    // 최대 23.5시간(1410분) 제한
-    const MAX_MINUTES = 23 * 60 + 30; // 1410
-    if (durationMinutes > MAX_MINUTES) {
-      alert("Event duration can't exceed 23.5 hours.");
-      return;
-    }
-
-    // 날짜와 시간 합치기 (자정 넘어가면 endDate는 다음날)
-    const dateStr = selectedDate.toISOString().split('T')[0];
-
-    const endDateObj = new Date(selectedDate);
-    if (endMinutes <= startMinutes) {
-      endDateObj.setDate(endDateObj.getDate() + 1);
-    }
-    const endDateStr = endDateObj.toISOString().split('T')[0];
-
-    const startISO = `${dateStr}T${newEvent.startTime}:00+09:00`;
-    const endISO = `${endDateStr}T${newEvent.endTime}:00+09:00`;
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/calendar/events/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: token,
-          summary: newEvent.summary,
-          location: newEvent.location,
-          description: newEvent.description,
-          startDateTime: startISO,
-          endDateTime: endISO,
-        }),
-      });
-
-      if (response.ok) {
-        alert("Event added successfully! 🎉");
-        setShowEventForm(false); // 폼 닫기
-        setNewEvent({ summary: '', location: '', description: '', startTime: '', endTime: '' }); // 초기화
-        fetchCalendarEvents(); // 목록 새로고침
-      } else {
-        alert("Failed to add event.");
-      }
-    } catch (error) {
-      console.error("Add Event Error:", error);
-    }
-  };
-
-  // 일정 삭제
-  const deleteCalendarEvent = async (eventId) => {
-    if (!window.confirm("이 일정을 삭제하시겠습니까?")) return;
-
-    const token = localStorage.getItem('googleAccessToken');
-    try {
-      const response = await fetch(`${BACKEND_URL}/calendar/events/delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: token,
-          eventId: eventId
-        }),
-      });
-
-      if (response.ok) {
-        alert("일정이 삭제되었습니다.");
-        fetchCalendarEvents(); // 목록 새로고침
-        // setSelectedDate(null); // 선택 초기화
-
-      }
-    } catch (error) {
-      console.error("삭제 에러:", error);
-    }
-  };
-
-  // ✨ 백엔드에 일정 수정 요청 보내기
-  const updateCalendarEvent = async (eventId, updatedData) => {
-    const token = localStorage.getItem('googleAccessToken');
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/calendar/events/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: token,
-          eventId: eventId,
-          // updatedData에는 summary, location, description 등이 들어옵니다.
-          ...updatedData,
-        }),
-      });
-
-      if (response.ok) {
-        alert("Event updated! ✨");
-        fetchCalendarEvents(); // 목록 새로고침
-      } else {
-        alert("Failed to update event.");
-      }
-    } catch (error) {
-      console.error("Update Error:", error);
-    }
-  };
-
   // 프로필 버튼 클릭 핸들러 (로그인/로그아웃 토글)
   const handleProfileClick = async () => {
     if (user) {
@@ -345,11 +174,6 @@ const Home = ({
   // ===== 날짜 =====
   const today = new Date();
   const formattedDate = formatDate(today);
-
-  // 🔒 캘린더: 항상 이번 달 14~20일을 보여주되, 처음에는 선택 없음
-  const calendarBaseDate = today;
-  const [selectedDate, setSelectedDate] = useState(null);
-  const weekDates = getWeekDates(calendarBaseDate);
 
   // ===== FAQ =====
   const defaultFaqItems = [
@@ -481,57 +305,7 @@ const Home = ({
     setIsMenuOpen(false);
   };
 
-  // ===== 슬라이더 (홈 / 캘린더) =====
-  const [activePage, setActivePage] = useState(0);
-  const [touchStartX, setTouchStartX] = useState(null);
-  const [touchEndX, setTouchEndX] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
 
-  const THRESHOLD = 100;
-
-  const handleTouchStart = (e) => {
-    setTouchStartX(e.touches[0].clientX);
-    setTouchEndX(null);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEndX(e.touches[0].clientX);
-  };
-
-  const finishSwipe = () => {
-    if (touchStartX === null || touchEndX === null) return;
-    const diff = touchStartX - touchEndX;
-
-    if (diff > THRESHOLD && activePage < 1) {
-      setActivePage(1);
-    } else if (diff < -THRESHOLD && activePage > 0) {
-      setActivePage(0);
-    }
-
-    setTouchStartX(null);
-    setTouchEndX(null);
-    setIsDragging(false);
-  };
-
-  const handleTouchEnd = () => {
-    finishSwipe();
-  };
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setTouchStartX(e.clientX);
-    setTouchEndX(null);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    setTouchEndX(e.clientX);
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging) return;
-    finishSwipe();
-  };
 
   // ===== useEffect – 로컬 스토리지 =====
   useEffect(() => {
@@ -568,19 +342,6 @@ const Home = ({
     setEditingIndex(null);
     setEditText('');
   };
-
-  // ===== 날짜별 일정 찾기 =====
-  // Google Calendar와 정적 schedules를 병합
-  const allSchedules = [...calendarEvents, ...schedules];
-
-  const selectedSchedules =
-    selectedDate &&
-    allSchedules.filter((s) => {
-      if (!s.date) return false;
-      const [y, m, d] = s.date.split('-').map(Number);
-      const scheduleDate = new Date(y, m - 1, d);
-      return isSameDay(scheduleDate, selectedDate);
-    });
 
   // ===== 렌더링 =====
   return (
@@ -758,7 +519,7 @@ const Home = ({
         </div>
       )}
 
-      {/* 🔥 공통 헤더 – 홈 / 캘린더 둘 다에 보이게 */}
+      {/* 헤더 */}
       <header className="weather-header">
         <button
           className="header-menu-btn"
@@ -772,17 +533,15 @@ const Home = ({
           />
         </button>
 
-        {/* ✅ 홈 화면(activePage === 0)에서만 위치/주소 표시 */}
-        {activePage === 0 && (
-          <button className="header-location" aria-label="위치 새로고침">
-            <img
-              src={`${process.env.PUBLIC_URL}/assets/icons/location.svg`}
-              alt="위치"
-              className="header-location-icon"
-            />
-            <span className="header-location-name">{location}</span>
-          </button>
-        )}
+        {/* 위치/주소 표시 */}
+        <button className="header-location" aria-label="위치 새로고침">
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/icons/location.svg`}
+            alt="위치"
+            className="header-location-icon"
+          />
+          <span className="header-location-name">{location}</span>
+        </button>
 
         {/* 프로필 버튼에 핸들러 연결 */}
         <button
@@ -799,243 +558,95 @@ const Home = ({
         </button>
       </header>
 
-      {/* 메인 슬라이더 */}
-      <div
-        className="home-slider"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        <div
-          className="home-slider-inner"
-          style={{ transform: `translateX(-${activePage * 50}%)` }}
-        >
-          {/* Page 0: 홈 */}
-          <div className="home-page home-page-main">
-            <div className="home-weather-info">
-              <p className="date">{formattedDate}</p>
-              <p className="temperature">
-                {weather ? `${weather.temp}°` : `00°C`}
-              </p>
-              <div className="description">
-                <WeatherDescriptionWithIcon weather={weather} />
-              </div>
-              <p className="sub-summary">
-                {weather
-                  ? `Feels like ${weather.feelsLike}° | H: ${weather.tempMax}° L: ${weather.tempMin}°`
-                  : 'Loading...'}
-              </p>
-            </div>
-
-            <div className="background-media">
-              <video
-                className="lumee-magic-orb"
-                autoPlay
-                loop
-                muted
-                playsInline
-                controls={false}
-              >
-                <source
-                  src="https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748854350/LumeeMagicOrb_Safari_rdmthi.mov"
-                  type='video/mp4; codecs="hvc1"'
-                />
-                <source src="https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748852283/LumeeMagicOrb_WEBM_tfqoa4.webm" type="video/webm" />
-              </video>
-            </div>
-
-            <div className="user-greeting-section">
-              <div className="greeting">{currentUser.greeting}</div>
-              <h1 className="main-question">
-                What weather info do you need?
-              </h1>
-            </div>
-
-            <div className="faq-section">
-              <div className="FAQ-buttons">
-                {faqItems.map((faqText, index) => (
-                  <div key={index} className="FAQ-card">
-                    {editingIndex === index ? (
-                      <div className="FAQ-edit-mode">
-                        <textarea
-                          className="FAQ-edit-input"
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          autoFocus
-                        />
-                        <div className="FAQ-edit-buttons">
-                          <button
-                            className="FAQ-save-btn"
-                            onClick={saveEdit}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="FAQ-cancel-btn"
-                            onClick={cancelEdit}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          className="FAQ-button"
-                          // 👉 길게 누르면 수정, 짧게 누르면 질문 전송
-                          onMouseDown={() => handleFaqPressStart(index)}
-                          onMouseUp={() => handleFaqPressEnd(faqText)}
-                          onMouseLeave={handleFaqPressCancel}
-                          onTouchStart={() => handleFaqPressStart(index)}
-                          onTouchEnd={() => handleFaqPressEnd(faqText)}
-                          onTouchMove={handleFaqPressCancel}
-                        >
-                          <span className="FAQ-button-text">
-                            {faqText}
-                          </span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* 메인 홈 화면 */}
+      <div className="home-page home-page-main">
+        <div className="home-weather-info">
+          <p className="date">{formattedDate}</p>
+          <p className="temperature">
+            {weather ? `${weather.temp}°` : `00°C`}
+          </p>
+          <div className="description">
+            <WeatherDescriptionWithIcon weather={weather} />
           </div>
-
-          {/* Page 1: 캘린더 */}
-          <div className="home-page home-page-calendar">
-            {/* 🔥 이름 Pill 제거 (원하면 다시 추가 가능) */}
-            {/* <div className="calendar-name-pill">{currentUser.name}</div> */}
-
-            {/* 월/연도 */}
-            <p className="calendar-month">
-              {formatMonthYear(selectedDate || calendarBaseDate)}
-            </p>
-
-            {/* 날짜 버튼 줄 */}
-            <div className="calendar-week-row">
-              {weekDates.map((d) => {
-                const selected = isSameDay(d, selectedDate);
-                return (
-                  <button
-                    key={d.toISOString()}
-                    className={`calendar-day${selected ? ' selected' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDate(d);
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                  >
-                    <span className="calendar-day-date">{d.getDate()}</span>
-                    <span className="calendar-day-weekday">
-                      {weekdayShort[d.getDay()]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 날짜 선택 상태에 따라 텍스트 변경 */}
-            <p className="calendar-cta">
-              {selectedDate ? 'Today' : 'Choose the day'}
-            </p>
-
-            {/* 👉 일정 카드 / + 카드 영역 */}
-            <div className="calendar-plan-wrapper">
-              {!user ? (
-                <div className="plan-card-empty-text">
-                  Please sign in to see your Google Calendar events.
-                </div>
-              ) : isLoadingCalendar ? (
-                <div className="plan-card-empty-text">
-                  Loading calendar events...
-                </div>
-              ) : selectedDate ? (
-                <div className="plan-list-container">
-
-                  {/* 1. [상단 고정] 일정 추가 버튼 및 입력 폼 */}
-                  <div className="event-add-section">
-                    {!showEventForm ? (
-                      <button className="add-event-btn" onClick={() => setShowEventForm(true)}>
-                        + Add New Event
-                      </button>
-                    ) : (
-                      <div className="event-input-form">
-                        <input
-                          type="text" placeholder="Title (Required)"
-                          className="event-form-input"
-                          value={newEvent.summary}
-                          onChange={(e) => setNewEvent({ ...newEvent, summary: e.target.value })}
-                        />
-                        <input
-                          type="text" placeholder="Location"
-                          className="event-form-input"
-                          value={newEvent.location}
-                          onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                        />
-                        <textarea
-                          placeholder="Description"
-                          className="event-form-textarea"
-                          value={newEvent.description}
-                          onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                        />
-                        <div className="time-picker-row">
-                          <input
-                            type="time"
-                            value={newEvent.startTime}
-                            onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
-                          />
-                          <input
-                            type="time"
-                            value={newEvent.endTime}
-                            onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
-                          />
-                        </div>
-                        <div className="form-action-btns">
-                          <button onClick={addCalendarEvent} className="save-btn">Save</button>
-                          <button onClick={() => setShowEventForm(false)} className="cancel-btn">Cancel</button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 2. [하단 스크롤] 등록된 일정 리스트 */}
-                  <div className="scrollable-plan-list">
-                    {selectedSchedules && selectedSchedules.length > 0 ? (
-                      selectedSchedules.map((schedule) => (
-                        <div key={schedule.id || schedule.event_id} className="plan-item-group">
-                          {/* onDelete 프롭스로 삭제 함수 전달 */}
-                          <PlanCard
-                            schedule={schedule}
-                            onDelete={() => deleteCalendarEvent(schedule.id || schedule.event_id)}
-                            onUpdate={updateCalendarEvent}
-                          />
-                        </div>
-                      ))
-                    ) : (
-                      !showEventForm && <div className="plan-card-empty-text">No schedule for this day.</div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
+          <p className="sub-summary">
+            {weather
+              ? `Feels like ${weather.feelsLike}° | H: ${weather.tempMax}° L: ${weather.tempMin}°`
+              : 'Loading...'}
+          </p>
         </div>
 
-        <div className="home-page-indicator">
-          <span
-            className={`indicator-dot ${activePage === 0 ? 'active' : ''
-              }`}
-          />
-          <span
-            className={`indicator-dot ${activePage === 1 ? 'active' : ''
-              }`}
-          />
+        <div className="background-media">
+          <video
+            className="lumee-magic-orb"
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls={false}
+          >
+            <source
+              src="https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748854350/LumeeMagicOrb_Safari_rdmthi.mov"
+              type='video/mp4; codecs="hvc1"'
+            />
+            <source src="https://res.cloudinary.com/dpuw0gcaf/video/upload/v1748852283/LumeeMagicOrb_WEBM_tfqoa4.webm" type="video/webm" />
+          </video>
+        </div>
+
+        <div className="user-greeting-section">
+          <div className="greeting">{currentUser.greeting}</div>
+          <h1 className="main-question">
+            What weather info do you need?
+          </h1>
+        </div>
+
+        <div className="faq-section">
+          <div className="FAQ-buttons">
+            {faqItems.map((faqText, index) => (
+              <div key={index} className="FAQ-card">
+                {editingIndex === index ? (
+                  <div className="FAQ-edit-mode">
+                    <textarea
+                      className="FAQ-edit-input"
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      autoFocus
+                    />
+                    <div className="FAQ-edit-buttons">
+                      <button
+                        className="FAQ-save-btn"
+                        onClick={saveEdit}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="FAQ-cancel-btn"
+                        onClick={cancelEdit}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className="FAQ-button"
+                      // 👉 길게 누르면 수정, 짧게 누르면 질문 전송
+                      onMouseDown={() => handleFaqPressStart(index)}
+                      onMouseUp={() => handleFaqPressEnd(faqText)}
+                      onMouseLeave={handleFaqPressCancel}
+                      onTouchStart={() => handleFaqPressStart(index)}
+                      onTouchEnd={() => handleFaqPressEnd(faqText)}
+                      onTouchMove={handleFaqPressCancel}
+                    >
+                      <span className="FAQ-button-text">
+                        {faqText}
+                      </span>
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
